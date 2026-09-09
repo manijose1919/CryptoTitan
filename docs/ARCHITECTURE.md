@@ -1,9 +1,9 @@
 # Architecture
 
-This document is for someone who is going to modify the code. It covers how the process is run, what
-happens at boot, what each module in `v2/` is responsible for, how data moves through the system, and
-how a change reaches the server. For a higher-level introduction see the
-[README](../README.md).
+This document is for someone who is going to modify **CryptoTitan**. It covers how the process is run,
+what happens at boot, what each module in `v2/` is responsible for, how data moves through the system,
+and how a change reaches a server. Runtime posture (paper-only, CAD ticker allowlist, live interlock)
+is summarized in the [README](../README.md).
 
 ---
 
@@ -22,7 +22,7 @@ It is managed by PM2 (`ecosystem.config.cjs`):
 | Exec mode | `fork`, `instances: 1` |
 | Port | `3033` |
 | `V2_MODE` | `paper` |
-| `PAIRS_MODE` | `paper` |
+| `PAIRS_MODE` | `off` |
 | `max_memory_restart` | `2G` |
 
 `fork` mode with a single instance is deliberate. The engine holds in-memory candle buffers and open
@@ -230,7 +230,7 @@ six weeks later than a number with the sample size that justified it.
 | `V2_MODE` | `V2_CONFIG.MODE` | `shadow` (default when unset), `paper` (deployed), or a live request |
 | `V2_LIVE_CONFIRMED` | `resolveV2Mode()` | Must equal `yes` in addition to `V2_MODE=live`; otherwise mode is downgraded to paper |
 | `V2_BUDGET` | `serverV2.ts` | Starting budget passed to `bootV2()`; defaults to `1000` |
-| `PAIRS_MODE` | `PAIRS_CONFIG.MODE` | `off` (default), `paper` (deployed), `live` |
+| `PAIRS_MODE` | `PAIRS_CONFIG.MODE` | `off` (deployed default), `paper`, `live` |
 | `PAIRS_LIVE_CONFIRMED` | pairs deployment protocol | Second required confirmation for live pairs trading |
 | `DUAL_ENGINE` | `DUAL_ENGINE_CONFIG.ENABLED` | `true` starts the Kraken-vs-Crypto.com A/B harness |
 | `PORT` | `serverV2.ts` | HTTP port, `3033` in the PM2 config |

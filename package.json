@@ -1,7 +1,7 @@
 {
-  "name": "cryptogod",
+  "name": "cryptotitan",
   "version": "1.0.0",
-  "description": "Automated multi-strategy cryptocurrency trading engine — Kraken execution, ML signal gating, and a React monitoring dashboard",
+  "description": "Canadian-universe paper-first crypto daytrading engine — Kraken USD pairs, dual live interlock, React monitor",
   "main": "serverV2.ts",
   "type": "module",
   "scripts": {

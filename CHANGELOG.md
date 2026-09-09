@@ -47,6 +47,24 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-09 17:30 UTC — CryptoTitan documentation and identity alignment — local-claude
+
+**Commits:** this branch
+**Files changed:** `README.md`, `docs/README.md`, `docs/ARCHITECTURE.md`, `package.json`, `CHANGELOG.md`
+**Stats baseline reset:** no — documentation only; no trading-parameter change
+
+**What changed:**
+Root README now describes CryptoTitan: paper-only default, dual live interlock, ten CAD Kraken USD pairs, `STRONG_UP` only, disabled ML/pairs/sniper/MR/shorts, and the corrected next-bar-open 90d replay (47 trades, -$3.63, PF 0.96). Architecture PM2 table now matches `PAIRS_MODE=off`. Package name/description updated. Docs index warns that older specs are historical.
+
+**Why:**
+The previous README still advertised CryptoGod with `UP`+`STRONG_UP`, enabled MR/sniper, pairs paper, and an ML gate in the loop — none of which match the running config. The private CryptoTitan remote is the intended home; until GitHub grants this agent access, the branch remains on the cryptoGod lineage.
+
+**What to monitor / watch for:**
+- Do not treat README clone URLs as proof the private repo is seeded.
+- Trading behavior is unchanged by this entry.
+
+---
+
 ## 2026-09-04 15:15 UTC — Canadian paper-trading hardening and evidence-based regime gate — local-claude
 
 **Commits:** this branch
