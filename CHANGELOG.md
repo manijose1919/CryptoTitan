@@ -47,6 +47,31 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-09 19:05 UTC — Paper safety: proxy auth, live order assert, CAD sniper filter — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `middleware/adminAuth.js`, `v2/engine/tradeMode.ts`, `v2/engine/cadUniverse.ts`, `v2/engine/bearishBootSummary.ts`, `v2/engine/bearishServices.ts`, `v2/engine/sniperEngine.ts`, `v2/exchange/krakenAdapter.ts`, `v2/exchange/cryptoComV2Adapter.ts`, `v2/index.ts`, `.gitignore`, tests
+**Stats baseline reset:** no — safety/honesty only; no trading-parameter change; not VPS-deployed
+
+**What changed:**
+- Admin auth no longer treats nginx→node (`X-Real-IP` / `X-Forwarded-For`) as localhost-exempt.
+- `assertLiveOrdersAllowed()` dual-interlock at every V2 Kraken/Crypto.com place/cancel path.
+- DCA real buys require `DCA_SIM_ONLY=false` **and** `V2_MODE=live` + `V2_LIVE_CONFIRMED=yes`; otherwise forced sim.
+- Sniper pair refresh filters to CAD USD allowlist (sniper remains `ENABLED=false`).
+- Bearish boot logs report `shorts=off staking=off arb=off dca=sim` instead of claiming all services running.
+- Ignore `data/*.json` backtest exports.
+
+**Why:**
+Close remaining paper-soak holes (proxied flag mutation, DCA/adapter live paths without dual interlock, latent non-CAD sniper listings, dishonest logs) without enabling live/ML/extra engines.
+
+**What to monitor / watch for:**
+- Behind nginx, `POST /api/config/flag` and other admin routes require `ADMIN_API_KEY` even when Node sees `req.ip=127.0.0.1`.
+- Paper soak must never call exchange place methods; if a caller tries, adapters throw.
+- Sniper still off; CAD filter is defense-in-depth only.
+- Stay paper; promotion bar still not met (see prior replay entry).
+
+---
+
 ## 2026-09-09 18:15 UTC — Paper soak hardening + fee-aware replay refresh — cursor-cloud
 
 **Commits:** this branch

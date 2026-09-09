@@ -6,8 +6,11 @@
  * X-API-Key header.
  *
  * Behavior:
- *   - Localhost (127.0.0.1 / ::1) is exempt — same-machine access is
- *     implicitly trusted. Lets the local dashboard work without a key.
+ *   - True same-machine localhost (127.0.0.1 / ::1) with no proxy
+ *     forwarding headers is exempt — local dashboard / curl without a key.
+ *   - Requests that arrive via a reverse proxy (X-Real-IP or
+ *     X-Forwarded-For present) are NEVER localhost-exempt, even when
+ *     req.ip is 127.0.0.1 (nginx → node hop). They must present ADMIN_API_KEY.
  *   - If ADMIN_API_KEY env var is unset, default-deny with 503. Opt-in
  *     by setting the env (not opt-out by leaving it blank).
  *   - Otherwise compare X-API-Key (or Bearer token) header against env.
@@ -19,9 +22,21 @@
  *   app.use('/api/engines', requireAdminAuth, engineRoutes);
  */
 
+function isLocalhostIp(ip) {
+    return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+}
+
+function hasProxyClientHeaders(headers) {
+    if (!headers) return false;
+    return Boolean(headers['x-real-ip'] || headers['x-forwarded-for']);
+}
+
 export function requireAdminAuth(req, res, next) {
     const ip = req.ip || req.connection?.remoteAddress;
-    if (ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1') {
+    const proxied = hasProxyClientHeaders(req.headers);
+
+    // Localhost exemption only for direct same-machine calls — not nginx→node.
+    if (!proxied && isLocalhostIp(ip)) {
         return next();
     }
 

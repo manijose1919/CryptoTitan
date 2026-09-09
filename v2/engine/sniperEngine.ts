@@ -23,6 +23,7 @@ import {
 } from '../attribution/attributionStore.ts';
 import { loadPortfolio } from './positionManager.ts';
 import { SNIPER_CONFIG, getExchangeFees } from './config.ts';
+import { isCadUsdTicker, normalizeUsdTicker } from './cadUniverse.ts';
 import { randomUUID } from 'node:crypto';
 
 const WARMUP_THRESHOLD = 20;
@@ -118,20 +119,22 @@ export function createSniperEngine(
       //   * Kraken: krakenAdapter wraps each instrument as {instrument_name: 'BTCUSD', ...}
       //   * Crypto.com: native API returns {symbol: 'BTC_USD', inst_type: 'CCY_PAIR', quote_ccy: 'USD', ...}
       //     for spot, plus perpetuals (inst_type: 'PERPETUAL_SWAP', symbol: 'BTCUSD-PERP'),
-      //     USDT pairs, etc. Must filter to USD spot only (Canadian compliance).
+      //     USDT pairs, etc. Always filter to the Canadian USD allowlist.
       let tickers: string[];
       if (exchange === 'cryptocom') {
         tickers = rawData
           .filter((i) =>
             i.inst_type === 'CCY_PAIR'
             && i.quote_ccy === 'USD'
-            && typeof i.symbol === 'string',
+            && typeof i.symbol === 'string'
+            && isCadUsdTicker(i.symbol as string),
           )
-          .map((i) => i.symbol as string);
+          .map((i) => normalizeUsdTicker(i.symbol as string));
       } else {
         tickers = rawData
           .map((i) => i.instrument_name as string)
-          .filter((n) => typeof n === 'string');
+          .filter((n) => typeof n === 'string' && isCadUsdTicker(n))
+          .map((n) => normalizeUsdTicker(n));
       }
 
       // First refresh: warmup acknowledge to prevent flagging the entire

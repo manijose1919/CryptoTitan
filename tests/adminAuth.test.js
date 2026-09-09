@@ -53,4 +53,39 @@ describe('requireAdminAuth', () => {
     expect(nextCalled).toBe(false);
     expect(res.statusCode).toBe(503);
   });
+
+  it('does not treat nginx→node localhost as trusted when X-Real-IP is set', () => {
+    process.env.ADMIN_API_KEY = 'test-admin-secret';
+    const req = {
+      ip: '127.0.0.1',
+      headers: { 'x-real-ip': '203.0.113.10' },
+    };
+    const res = mockRes();
+    let nextCalled = false;
+    requireAdminAuth(req, res, () => { nextCalled = true; });
+    expect(nextCalled).toBe(false);
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('does not treat proxied X-Forwarded-For clients as localhost-exempt', () => {
+    process.env.ADMIN_API_KEY = 'test-admin-secret';
+    const req = {
+      ip: '::ffff:127.0.0.1',
+      headers: { 'x-forwarded-for': '198.51.100.20, 127.0.0.1' },
+    };
+    const res = mockRes();
+    let nextCalled = false;
+    requireAdminAuth(req, res, () => { nextCalled = true; });
+    expect(nextCalled).toBe(false);
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('still allows true same-machine localhost without a proxy header', () => {
+    process.env.ADMIN_API_KEY = 'test-admin-secret';
+    const req = { ip: '127.0.0.1', headers: {} };
+    const res = mockRes();
+    let nextCalled = false;
+    requireAdminAuth(req, res, () => { nextCalled = true; });
+    expect(nextCalled).toBe(true);
+  });
 });

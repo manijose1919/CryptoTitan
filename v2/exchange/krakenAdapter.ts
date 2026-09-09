@@ -5,6 +5,7 @@
 
 import type { ExchangeAdapter, OrderResult } from './types.ts';
 import { V2_CONFIG } from '../engine/config.ts';
+import { assertLiveOrdersAllowed } from '../engine/tradeMode.ts';
 
 // --- Lazy-loaded references ---
 
@@ -72,6 +73,7 @@ export const krakenV2: ExchangeAdapter = {
   },
 
   async placeMakerBuy(ticker: string, price: number, quantity: number): Promise<OrderResult> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     const result = await adapter.placePostOnlyBuy(ticker, price, quantity, 'v2');
     const fee = price * quantity * V2_CONFIG.FEE_MAKER_PERCENT;
@@ -88,6 +90,7 @@ export const krakenV2: ExchangeAdapter = {
   },
 
   async placeMakerSell(ticker: string, price: number, quantity: number): Promise<OrderResult> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     const result = await adapter.placePostOnlySell(ticker, price, quantity, 'v2');
     const fee = price * quantity * V2_CONFIG.FEE_MAKER_PERCENT;
@@ -104,6 +107,7 @@ export const krakenV2: ExchangeAdapter = {
   },
 
   async placeMarketSell(ticker: string, quantity: number): Promise<OrderResult> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     const result = await adapter.placeSellOrder(ticker, quantity, 'v2', null);
     const avgPrice = result.avgPrice || result.filledPrice || 0;
@@ -121,6 +125,7 @@ export const krakenV2: ExchangeAdapter = {
   },
 
   async placeStopLoss(ticker: string, quantity: number, stopPrice: number): Promise<OrderResult> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     const result = await adapter.placeStopLoss(ticker, quantity, stopPrice, 'v2');
     return {
@@ -136,6 +141,7 @@ export const krakenV2: ExchangeAdapter = {
   },
 
   async cancelOrder(orderId: string): Promise<boolean> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     try {
       const result = await adapter.cancelOrder(orderId, 'v2');

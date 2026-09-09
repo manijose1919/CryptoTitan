@@ -1,21 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { V2_CONFIG, MOMENTUM_CONFIG, SNIPER_CONFIG, MR_CONFIG, PAIRS_CONFIG } from './config.ts';
-
-const CAD_BASES = new Set([
-  'BTC', 'ETH', 'XRP', 'BNB', 'SOL', 'ADA', 'DOGE', 'LINK', 'DOT', 'AVAX',
-]);
+import { isCadUsdTicker, CAD_USD_BASES } from './cadUniverse.ts';
 
 function assertCadUsdPair(ticker: string): void {
-  expect(ticker.endsWith('USD'), `${ticker} must be a USD pair`).toBe(true);
-  expect(ticker.includes('USDT'), `${ticker} must not use USDT`).toBe(false);
-  expect(ticker.includes('USDC'), `${ticker} must not use USDC`).toBe(false);
-  const base = ticker.slice(0, -3);
-  expect(CAD_BASES.has(base), `${ticker} base ${base} is outside the Canadian allowlist`).toBe(true);
+  expect(isCadUsdTicker(ticker), `${ticker} must pass isCadUsdTicker`).toBe(true);
 }
 
 describe('Canadian trading universe', () => {
   it('keeps the main scanner on the ten approved Kraken USD pairs only', () => {
     expect(V2_CONFIG.SCAN_TICKERS).toHaveLength(10);
+    expect([...V2_CONFIG.SCAN_TICKERS].sort()).toEqual(
+      [...CAD_USD_BASES].map((b) => `${b}USD`).sort(),
+    );
     for (const ticker of V2_CONFIG.SCAN_TICKERS) {
       assertCadUsdPair(ticker);
     }
@@ -25,6 +21,15 @@ describe('Canadian trading universe', () => {
     for (const ticker of MOMENTUM_CONFIG.SCAN_TICKERS) {
       assertCadUsdPair(ticker);
     }
+  });
+
+  it('rejects USDT/USDC and non-allowlist bases even if quote looks like USD', () => {
+    expect(isCadUsdTicker('BTCUSDT')).toBe(false);
+    expect(isCadUsdTicker('ETHUSDC')).toBe(false);
+    expect(isCadUsdTicker('FILUSD')).toBe(false);
+    expect(isCadUsdTicker('ICPUSD')).toBe(false);
+    expect(isCadUsdTicker('BTC_USD')).toBe(true);
+    expect(isCadUsdTicker('solusd')).toBe(true);
   });
 
   it('keeps unsupported engines off so they cannot leak non-CAD pairs into live decisions', () => {

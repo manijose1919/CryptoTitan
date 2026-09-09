@@ -5,6 +5,7 @@
 // ============================================
 
 import type { ExchangeAdapter, OrderResult } from './types.ts';
+import { assertLiveOrdersAllowed } from '../engine/tradeMode.ts';
 
 // --- Fee Constants (Crypto.com) ---
 
@@ -80,6 +81,7 @@ export const cryptoComV2: ExchangeAdapter = {
   },
 
   async placeMakerBuy(ticker: string, price: number, quantity: number): Promise<OrderResult> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     const result = await adapter.placeLimitBuyOrder(ticker, price, quantity, null);
     const fee = price * quantity * CRYPTO_COM_FEES.MAKER_PERCENT;
@@ -96,6 +98,7 @@ export const cryptoComV2: ExchangeAdapter = {
   },
 
   async placeMakerSell(ticker: string, price: number, quantity: number): Promise<OrderResult> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     const result = await adapter.placeLimitSellOrder(ticker, price, quantity, null);
     const fee = price * quantity * CRYPTO_COM_FEES.MAKER_PERCENT;
@@ -112,6 +115,7 @@ export const cryptoComV2: ExchangeAdapter = {
   },
 
   async placeMarketSell(ticker: string, quantity: number): Promise<OrderResult> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     const result = await adapter.placeSellOrder(ticker, quantity, null, null);
     const avgPrice = result.avgPrice || result.filledPrice || 0;
@@ -130,6 +134,7 @@ export const cryptoComV2: ExchangeAdapter = {
   },
 
   async placeStopLoss(ticker: string, quantity: number, stopPrice: number): Promise<OrderResult> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     const result = await adapter.placeStopLoss(ticker, quantity, stopPrice, null);
     return {
@@ -145,6 +150,7 @@ export const cryptoComV2: ExchangeAdapter = {
   },
 
   async cancelOrder(orderId: string): Promise<boolean> {
+    assertLiveOrdersAllowed();
     const adapter = getAdapter();
     try {
       // Crypto.com cancelOrder needs ticker — pass empty, adapter will use order's instrument

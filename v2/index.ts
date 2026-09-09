@@ -7,7 +7,8 @@ import { initV2Engine, startV2Engine, stopV2Engine, getV2Status } from './engine
 import { initKrakenAdapter, krakenV2 } from './exchange/krakenAdapter.ts';
 import { initCryptoComAdapter, cryptoComV2 } from './exchange/cryptoComV2Adapter.ts';
 import { initDualEngine, startDualEngine, stopDualEngine, getDualStatus } from './engine/dualExchangeEngine.ts';
-import { initBearishServices, startBearishServices, stopBearishServices, getBearishStatus } from './engine/bearishServices.ts';
+import { initBearishServices, startBearishServices, stopBearishServices, getBearishStatus, BEARISH_CONFIG } from './engine/bearishServices.ts';
+import { describeBearishBootSummary } from './engine/bearishBootSummary.ts';
 import { initMREngine, startMREngine, stopMREngine, getMRStatus } from './engine/meanReversionEngine.ts';
 import { stopBreakoutEngine, getBreakoutStatus } from './engine/breakoutEngine.ts';
 import { stopMomentumEngine, getMomentumStatus } from './engine/momentumEngine.ts';
@@ -30,7 +31,7 @@ export async function bootV2(initialBudget = 1000): Promise<void> {
     try {
       initBearishServices(krakenV2);
       startBearishServices();
-      console.log('[V2] Bearish services running (shorts, staking, arb, DCA)');
+      console.log(`[V2] Bearish wrappers: ${describeBearishBootSummary(BEARISH_CONFIG)}`);
     } catch (err: any) {
       console.warn(`[V2] Bearish services failed to start: ${err.message}`);
     }

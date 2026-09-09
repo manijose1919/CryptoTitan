@@ -156,3 +156,4 @@ coverage/
 /next _step_evolution.txt
 /nul
 /txt/
+data/*.json

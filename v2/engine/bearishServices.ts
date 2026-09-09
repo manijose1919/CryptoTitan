@@ -5,6 +5,8 @@
 // ============================================
 
 import { V2_CONFIG } from './config.ts';
+import { isLiveTradingConfirmed } from './tradeMode.ts';
+import { describeBearishBootSummary } from './bearishBootSummary.ts';
 import { getDb } from '../../services/database.js';
 import { shortSellingEngine } from '../../core/shortSellingEngine.ts';
 import { stakingEngine } from '../../core/stakingEngine.ts';
@@ -48,10 +50,10 @@ const BEARISH_CONFIG = {
   // Extreme Fear DCA
   DCA_FEAR_THRESHOLD: 20,          // Was 15 — raised to catch "Fear" not just "Extreme Fear"; F&G 15-20 is still deeply fearful
   DCA_TICKERS: ['BTCUSD', 'ETHUSD', 'SOLUSD'] as string[],  // Blue chips + SOL at discount
-  DCA_AMOUNT_USD: 10,              // Was $25 sim — now $10 real money (conservative)
+  DCA_AMOUNT_USD: 10,              // $10 per buy (sim by default; real requires dual live interlock)
   DCA_COOLDOWN_MS: 4 * 60 * 60 * 1000, // Max 1 buy per ticker per 4 hours
   DCA_MAX_DAILY_BUYS: 9,           // Was 6 — bumped to 3 rounds/day (3 tickers × 3 rounds); DCA is the most profitable strategy
-  DCA_SIM_ONLY: true,              // Back to sim — Kraken account has insufficient USD. Fund account then set to false.
+  DCA_SIM_ONLY: true,              // Sim-only. Real buys also require V2_MODE=live + V2_LIVE_CONFIRMED=yes.
 };
 
 // ─── State ─────────────────────────────────────────────────
@@ -387,7 +389,16 @@ async function evaluateFearDCA(): Promise<void> {
       const buyPrice = parseFloat((price * 0.999).toFixed(priceDecimals));
       const quantity = parseFloat((buyAmount / price).toFixed(qtyDecimals));
 
-      if (BEARISH_CONFIG.DCA_SIM_ONLY) {
+      // Real DCA requires BOTH DCA_SIM_ONLY=false AND the dual live interlock.
+      // Flipping only the sim flag must never place exchange orders in paper.
+      const allowRealDca = !BEARISH_CONFIG.DCA_SIM_ONLY && isLiveTradingConfirmed();
+      if (!allowRealDca) {
+        if (!BEARISH_CONFIG.DCA_SIM_ONLY && !isLiveTradingConfirmed()) {
+          console.warn(
+            `[Bearish] DCA BUY forced to sim — live interlock not confirmed ` +
+            `(V2_MODE=${process.env.V2_MODE ?? ''} V2_LIVE_CONFIRMED=${process.env.V2_LIVE_CONFIRMED ?? ''})`,
+          );
+        }
         console.log(
           `[Bearish] DCA BUY (sim): ${ticker} $${buyAmount} @ $${price.toFixed(2)}`,
           `(${quantity} units, F&G=${fgIndex}, ${fearMultiplier}x)`
@@ -556,7 +567,10 @@ export function startBearishServices(): void {
   evaluate(); // Run immediately
   timer = setInterval(() => evaluate(), BEARISH_CONFIG.EVAL_INTERVAL_MS);
 
-  console.log(`[Bearish] All services started (eval every ${BEARISH_CONFIG.EVAL_INTERVAL_MS / 1000}s)`);
+  console.log(
+    `[Bearish] Services started (${describeBearishBootSummary(BEARISH_CONFIG)}; ` +
+    `eval every ${BEARISH_CONFIG.EVAL_INTERVAL_MS / 1000}s)`,
+  );
 }
 
 export function stopBearishServices(): void {
