@@ -47,6 +47,40 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-09 18:15 UTC — Paper soak hardening + fee-aware replay refresh — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `services/database.js`, `services/systemConfig.js`, `ecosystem.config.cjs`, `.env.example`, `v2/engine/tradeEngine.ts`, `v2/engine/rejectionTally.ts`, tests (`cadUniverse`, `adminAuth`, `systemConfigDefaults`, `databasePath`, `rejectionTally`), `CHANGELOG.md`, `README.md`
+**Stats baseline reset:** no — not deployed to a VPS; paper-only soak on isolated SQLite
+
+**What changed:**
+- `DATA_DIR` / `SQLITE_PATH` isolate paper SQLite from a stale `data/trading.db`.
+- `systemConfig` defaults now match paper posture: `ML_GATEKEEPER_ENABLED=false`, `SNIPER_MODE_ENABLED=false` (V2 entry gating still uses `V2_CONFIG`, also false).
+- `ecosystem.config.cjs` sets `V2_LIVE_CONFIRMED=no` explicitly.
+- Health counters `rejectedByScan` / `rejectedBySignal` now increment (were stuck at 0).
+- Tests lock CAD USD universe, admin flag auth for non-localhost, DB path isolation, and rejection tally.
+
+**Fee-aware next-bar-open replay (5 bps/side, STRONG_UP, 4h, 10 CAD tickers, 0.52% RT taker), re-run 2026-09-09:**
+
+| Window | Trades | Net | PF |
+|---|---|---|---|
+| 90d (2026-06-11 → 2026-09-09) | 54 | +$2.01 | 1.02 |
+| First 45d | 13 | -$4.20 | 0.80 |
+| Second 45d | 31 | +$9.72 | 1.17 |
+
+**Decision:** stay paper-only. First half is negative; full-window PF ≈ 1 is not a promotion bar. Do not cherry-pick tickers. Do not enable live / ML / extra engines.
+
+**Why:**
+Confirm CryptoTitan paper boot, close live-interlock / CAD / auth / config-default holes, and refresh the honest replay before any strategy change.
+
+**What to monitor / watch for:**
+- Paper soak: `V2_MODE=paper`, `mode=paper` on `/api/health`, 0 open positions when no `STRONG_UP` — expected.
+- `/api/v2/bearish/status`: shorts/staking/arb `enabled=false`; DCA sim-only.
+- Sniper/pairs off. Non-localhost `POST /api/config/flag` without `ADMIN_API_KEY` → 401/503.
+- Do not reset `stats_baseline_time` until this config is actually deployed.
+
+---
+
 ## 2026-09-09 17:30 UTC — CryptoTitan documentation and identity alignment — local-claude
 
 **Commits:** this branch

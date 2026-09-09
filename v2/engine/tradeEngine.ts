@@ -5,6 +5,7 @@
 
 import type { Candle, V2Trade } from '../pipeline/types.ts';
 import { V2_CONFIG, STRATEGY_TIMEFRAMES, getExchangeFees } from './config.ts';
+import { tallyFailed } from './rejectionTally.ts';
 import type { ExchangeAdapter } from '../exchange/types.ts';
 import { applyPaperSlippage, calculateRealizedPnl } from './tradeAccounting.ts';
 
@@ -242,6 +243,7 @@ async function runLoop(): Promise<void> {
     // Market scan on primary timeframe for diagnostics/logging
     const scanResults = scanMarket(tickerCandles);
     stats.lastScanReasons = scanResults.map(r => ({ ticker: r.ticker, reason: r.reason || (r.passed ? 'PASS' : 'UNKNOWN') }));
+    stats.rejectedByScan += tallyFailed(scanResults);
     // htfRegimes was declared and returned by getV2Status() but never written,
     // so every consumer read {} and reported regime UNKNOWN. Populate it here.
     stats.htfRegimes = Object.fromEntries(scanResults.map(r => [r.ticker, r.regime]));
@@ -257,6 +259,7 @@ async function runLoop(): Promise<void> {
     // Runs TREND, MOMENTUM, BREAKOUT, MEAN_REVERSION, SCALP on their optimal TFs
     const allSignals = runAllStrategies(allCandles, V2_CONFIG.SCAN_TICKERS as unknown as string[]);
     const passedSignals = allSignals.filter(s => s.passed);
+    stats.rejectedBySignal += tallyFailed(allSignals);
 
     if (passedSignals.length === 0) {
       if (stats.loopCount % 5 === 1) {

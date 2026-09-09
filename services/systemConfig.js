@@ -8,8 +8,10 @@ import { getSetting, setSetting } from './database.js';
 
 // Default flags — used when no persisted value exists
 const DEFAULT_FLAGS = {
-  // System A: ML Gatekeeper — HARD_GATE: ML decides, no fallback
-  ML_GATEKEEPER_ENABLED: true,
+  // System A: ML Gatekeeper — disabled until leakage-free OOS skill exists.
+  // V2 entry gating uses V2_CONFIG.ML_GATEKEEPER_ENABLED (also false); this
+  // default must stay false so /api/config/flags and evaluateEntry agree.
+  ML_GATEKEEPER_ENABLED: false,
   ML_GATEKEEPER_MODE: 'HARD_GATE',       // 'ADVISORY' | 'SOFT_GATE' | 'HARD_GATE'
   ML_MIN_CONFIDENCE_TO_BLOCK: 52,
   ML_MIN_CONFIDENCE_TO_OVERRIDE: 55,
@@ -97,8 +99,9 @@ const DEFAULT_FLAGS = {
   // When enabled: order-book slippage, simulated native SL, fill latency, partial fills
   SIMULATION_ACCURACY: true,
 
-  // Phase 1-5: Surge Sniper Mode
-  SNIPER_MODE_ENABLED: true,         // Master switch for all surge sniper features
+  // Phase 1-5: Surge Sniper Mode — off; V2 SNIPER_CONFIG.ENABLED is also false
+  // (dynamic listings can leave the Canadian USD allowlist).
+  SNIPER_MODE_ENABLED: false,
   SNIPER_TP: 0.025,                  // 2.5% take-profit for SNIPER entries
   SNIPER_SL: 0.015,                  // 1.5% stop-loss for SNIPER entries
   SNIPER_MAX_HOLD: 2,                // Max hold time in hours for SNIPER positions

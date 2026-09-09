@@ -17,7 +17,7 @@ This codebase is a hard fork of the CryptoGod engine, retargeted for a **Canadia
 
 > This software can place orders on a live cryptocurrency exchange. When live mode is enabled it will buy and sell real assets with real money, automatically, without a human in the loop. Cryptocurrency trading can result in total loss of capital.
 >
-> Nothing in this repository is financial advice. Corrected fee-aware replay of the current Canadian universe is **approximately break-even** (see Evidence). That is not an edge. Paper profits, if they appear later, still do not predict live returns. The software is provided without warranty; see [`LICENSE`](LICENSE). You are solely responsible for anything it does with your money.
+> Nothing in this repository is financial advice. Corrected fee-aware replay of the current Canadian universe is **approximately break-even** (see Evidence; refreshed 90d PF 1.02 with a negative first half). That is not an edge. Paper profits, if they appear later, still do not predict live returns. The software is provided without warranty; see [`LICENSE`](LICENSE). You are solely responsible for anything it does with your money.
 
 ## Current operating posture
 
@@ -44,9 +44,11 @@ Fee-aware next-bar-open replay, 5 bps/side, `STRONG_UP` only, 4h, ten CAD ticker
 
 | Window | Trades | Net | Profit factor | Notes |
 |---|---|---|---|---|
-| 90d (2026-06-06 → 2026-09-04) | 47 | **-$3.63** | **0.96** | WR 72.3%; avg win $2.79 / avg loss $7.57 |
-| First 45d | 17 | -$22.47 | 0.46 | Non-overlapping half |
-| Second 45d | 19 | +$7.47 | 1.23 | Non-overlapping half |
+| 90d (2026-06-11 → 2026-09-09) | 54 | **+$2.01** | **1.02** | WR 70.4%; avg win $3.00 / avg loss $7.00 — refreshed 2026-09-09 |
+| First 45d | 13 | -$4.20 | 0.80 | Non-overlapping half |
+| Second 45d | 31 | +$9.72 | 1.17 | Non-overlapping half |
+
+Prior window (2026-06-06 → 2026-09-04): 47 trades, -$3.63, PF 0.96. Same conclusion.
 
 **Decision:** stay paper-only. Do not cherry-pick tickers from this sample. Do not reset `stats_baseline_time` until this configuration is actually deployed.
 

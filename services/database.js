@@ -5,13 +5,31 @@
 
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, isAbsolute, join } from 'node:path';
 import { mkdirSync } from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 let db = null;
+
+/**
+ * Resolve the SQLite file path.
+ * SQLITE_PATH wins when set; otherwise DATA_DIR/trading.db; otherwise repo data/.
+ * Lets paper soaks use an isolated DB without touching a stale data/trading.db.
+ */
+export function resolveDatabasePath() {
+  if (process.env.SQLITE_PATH) {
+    return process.env.SQLITE_PATH;
+  }
+  if (process.env.DATA_DIR) {
+    const dataDir = isAbsolute(process.env.DATA_DIR)
+      ? process.env.DATA_DIR
+      : join(process.cwd(), process.env.DATA_DIR);
+    return join(dataDir, 'trading.db');
+  }
+  return join(__dirname, '..', 'data', 'trading.db');
+}
 
 /**
  * Get the database instance (must call initializeDatabase first)
@@ -27,10 +45,9 @@ export function getDb() {
  * Initialize the SQLite database with all required tables
  */
 export function initializeDatabase() {
-  const dataDir = join(__dirname, '..', 'data');
-  mkdirSync(dataDir, { recursive: true });
+  const dbPath = resolveDatabasePath();
+  mkdirSync(dirname(dbPath), { recursive: true });
 
-  const dbPath = join(dataDir, 'trading.db');
   db = new Database(dbPath);
 
   // Enable WAL mode for better concurrent read performance

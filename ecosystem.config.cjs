@@ -15,6 +15,8 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3033,
         V2_MODE: 'paper',
+        // Dual live interlock: live requires V2_MODE=live AND this = yes.
+        V2_LIVE_CONFIRMED: 'no',
         // FIL/ICP is outside the Canadian deployment allowlist.
         PAIRS_MODE: 'off',
       },
