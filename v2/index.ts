@@ -15,6 +15,7 @@ import { buildKrakenSniper, buildCryptocomSniper, stopSniperEngine, getSniperSta
 import { initPairsEngine, startPairsEngine, stopPairsEngine, getPairsStatus } from './pairs/pairsEngine.ts';
 import { v2Router } from './dashboard/attributionAPI.ts';
 import { V2_CONFIG, MR_CONFIG, MOMENTUM_CONFIG, SNIPER_CONFIG, PAIRS_CONFIG } from './engine/config.ts';
+import { resolvePairsRuntimeMode } from './engine/canadianUniverse.ts';
 
 export { v2Router, getV2Status, stopV2Engine, getDualStatus, stopDualEngine, getBearishStatus, stopBearishServices, getMRStatus, stopMREngine, getBreakoutStatus, stopBreakoutEngine, getMomentumStatus, stopMomentumEngine, getSniperStatus, stopSniperEngine, getPairsStatus, stopPairsEngine };
 
@@ -108,19 +109,24 @@ export async function bootV2(initialBudget = 1000): Promise<void> {
       console.log('[V2] Sniper master switch off (SNIPER_CONFIG.ENABLED=false).');
     }
 
-    // Pairs trading engine (cross-asset cointegration, paper-only this session).
-    // Gated by PAIRS_MODE env: 'off' | 'paper'. 'live' is refused for now.
-    // Deployment plan: docs/plans/2026-05-26-pairs-deployment-plan.md
-    if (PAIRS_CONFIG.MODE !== 'off') {
+    // Pairs trading engine. FIL/ICP is outside the CAD allowlist, so runtime
+    // mode is forced off until both legs are Canadian USD pairs.
+    const pairsRuntime = resolvePairsRuntimeMode(
+      process.env.PAIRS_MODE ?? PAIRS_CONFIG.MODE,
+      process.env.PAIRS_LIVE_CONFIRMED,
+      PAIRS_CONFIG.SYMBOL_A,
+      PAIRS_CONFIG.SYMBOL_B,
+    );
+    if (pairsRuntime !== 'off') {
       try {
         initPairsEngine();
         startPairsEngine();
-        console.log(`[V2] Pairs engine running (${PAIRS_CONFIG.MODE} mode, ${PAIRS_CONFIG.SYMBOL_A}/${PAIRS_CONFIG.SYMBOL_B})`);
+        console.log(`[V2] Pairs engine running (${pairsRuntime} mode, ${PAIRS_CONFIG.SYMBOL_A}/${PAIRS_CONFIG.SYMBOL_B})`);
       } catch (err: any) {
         console.warn(`[V2] Pairs engine failed to start: ${err.message}`);
       }
     } else {
-      console.log('[V2] Pairs engine disabled (PAIRS_MODE=off).');
+      console.log('[V2] Pairs engine disabled (PAIRS_MODE=off or non-CAD pair).');
     }
   } catch (err: any) {
     console.error(`[V2] Boot failed: ${err.message}`);

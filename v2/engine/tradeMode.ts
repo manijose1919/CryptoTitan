@@ -10,5 +10,6 @@ export function resolveV2Mode(
   if (requestedMode === 'paper' || requestedMode === 'shadow') {
     return requestedMode;
   }
-  return 'shadow';
+  // Unknown / mistyped values (LIVE, paper-prod, empty) stay paper on this fork.
+  return 'paper';
 }

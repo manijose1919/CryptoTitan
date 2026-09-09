@@ -15,4 +15,11 @@ describe('V2 mode safety interlock', () => {
     expect(resolveV2Mode('paper', undefined)).toBe('paper');
     expect(resolveV2Mode('shadow', undefined)).toBe('shadow');
   });
+
+  it('does not treat case variants or unknown values as live', () => {
+    expect(resolveV2Mode('LIVE', 'yes')).toBe('paper');
+    expect(resolveV2Mode('live', 'YES')).toBe('paper');
+    expect(resolveV2Mode(undefined, 'yes')).toBe('paper');
+    expect(resolveV2Mode('paper-prod', 'yes')).toBe('paper');
+  });
 });

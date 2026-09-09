@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-09 18:20 UTC — Paper CAD interlock hardening — cloud-agent
+
+**Commits:** this branch
+**Files changed:** `v2/engine/canadianUniverse.ts`, `v2/engine/tradeMode.ts`, `v2/pairs/pairsEngine.ts`, `v2/index.ts`, `services/database.js`, `.env.example`, `README.md`, tests, `CHANGELOG.md`
+**Stats baseline reset:** no — no trading-parameter change; FIL/ICP pairs were already `PAIRS_MODE=off`
+
+**What changed:**
+Unknown/`LIVE` `V2_MODE` values now resolve to **paper** instead of shadow. Pairs runtime mode is forced **off** when either leg is outside the ten Canadian USD bases (FIL/ICP cannot be enabled via env). SQLite honors `DATA_DIR` so a paper soak can use an isolated `trading.db`. Remote `POST /api/config/flag` remains admin-keyed; tests cover CAD leaks, live case-sensitivity, admin auth, and DATA_DIR.
+
+**Why:**
+Paper-first Canadian operation should fail closed on mistyped live flags, non-CAD pair symbols, and shared SQLite files. This does not create an edge and does not enable live, ML, sniper, MR, shorts, staking, or arb.
+
+**What to monitor / watch for:**
+- `/api/health` `v2.mode` stays `paper` with `V2_LIVE_CONFIRMED=no`
+- `/api/v2/bearish/status` staking/shorts/arb remain disabled
+- Zero entries during non-`STRONG_UP` is expected
+- Do not reset `stats_baseline_time`
+
+---
+
 ## 2026-09-09 17:30 UTC — CryptoTitan documentation and identity alignment — local-claude
 
 **Commits:** this branch

@@ -24,13 +24,20 @@ export function getDb() {
 }
 
 /**
+ * Resolve the SQLite directory. DATA_DIR isolates paper soaks from a
+ * default data/trading.db that may already hold another instance's state.
+ */
+export function resolveDatabasePath(env = process.env) {
+  const dataDir = env.DATA_DIR || join(__dirname, '..', 'data');
+  return { dataDir, dbPath: join(dataDir, 'trading.db') };
+}
+
+/**
  * Initialize the SQLite database with all required tables
  */
 export function initializeDatabase() {
-  const dataDir = join(__dirname, '..', 'data');
+  const { dataDir, dbPath } = resolveDatabasePath();
   mkdirSync(dataDir, { recursive: true });
-
-  const dbPath = join(dataDir, 'trading.db');
   db = new Database(dbPath);
 
   // Enable WAL mode for better concurrent read performance

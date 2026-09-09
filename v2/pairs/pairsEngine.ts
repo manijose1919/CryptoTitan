@@ -16,6 +16,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { PAIRS_CONFIG } from '../engine/config.ts';
+import { resolvePairsRuntimeMode } from '../engine/canadianUniverse.ts';
 import {
   initPairsTables,
   insertPairsTrade,
@@ -731,14 +732,21 @@ async function runLoop(): Promise<void> {
 let _effectiveMode: 'off' | 'paper' | 'live' = 'off';
 
 function resolveEffectiveMode(): 'off' | 'paper' | 'live' {
-  if (PAIRS_CONFIG.MODE === 'off') return 'off';
-  if (PAIRS_CONFIG.MODE === 'paper') return 'paper';
-  if (PAIRS_CONFIG.MODE === 'live') {
-    if (process.env.PAIRS_LIVE_CONFIRMED === 'yes') return 'live';
+  const mode = resolvePairsRuntimeMode(
+    process.env.PAIRS_MODE ?? PAIRS_CONFIG.MODE,
+    process.env.PAIRS_LIVE_CONFIRMED,
+    PAIRS_CONFIG.SYMBOL_A,
+    PAIRS_CONFIG.SYMBOL_B,
+  );
+  if (PAIRS_CONFIG.MODE === 'live' && mode === 'paper') {
     console.warn('[PAIRS] PAIRS_MODE=live but PAIRS_LIVE_CONFIRMED is not "yes". Downgrading to paper.');
-    return 'paper';
   }
-  return 'off';
+  if (mode === 'off' && PAIRS_CONFIG.MODE !== 'off') {
+    console.warn(
+      `[PAIRS] refusing ${PAIRS_CONFIG.SYMBOL_A}/${PAIRS_CONFIG.SYMBOL_B} — not in the Canadian USD allowlist.`,
+    );
+  }
+  return mode;
 }
 
 export function initPairsEngine(): void {

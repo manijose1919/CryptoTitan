@@ -10,8 +10,8 @@ Canadian-universe, paper-first cryptocurrency daytrading engine. It streams Krak
 
 This codebase is a hard fork of the CryptoGod engine, retargeted for a **Canadian Kraken USD account**. It is **not** a proven profitable live system. The current configuration exists to gather a forward paper sample under conservative fills, not to trade real capital.
 
-**Intended private remote:** `https://github.com/manijose1919/CryptoTitan`  
-**Current public lineage (until the private remote is granted to this agent):** `https://github.com/manijose1919/cryptoGod`
+**Remote:** `https://github.com/manijose1919/CryptoTitan`  
+**Lineage:** hard-forked from `https://github.com/manijose1919/cryptoGod` (not a deploy target).
 
 ## Risk notice
 
@@ -120,11 +120,8 @@ The main loop lives in `v2/engine/tradeEngine.ts`:
 Prerequisites: Node.js 20+.
 
 ```bash
-# Prefer the private CryptoTitan remote once you have access.
-# Until then this history lives on the cryptoGod lineage branch.
-git clone https://github.com/manijose1919/cryptoGod.git
-cd cryptoGod
-git checkout cursor/paper-trading-hardening-c9fd
+git clone https://github.com/manijose1919/CryptoTitan.git
+cd CryptoTitan
 npm install
 
 cp .env.example .env
