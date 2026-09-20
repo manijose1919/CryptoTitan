@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-20 00:10 UTC — Clamp quick-kill stop to valid side of price — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/pipeline/exitManager.ts`, `v2/pipeline/exitManager.quickKillClamp.test.ts`, `CHANGELOG.md`
+**Stats baseline reset:** no — exit correctness only; no risk-gate / ticker / ML / live changes
+
+**What changed:**
+Quick-kill stop tightening now requires the candidate stop to stay on the valid side of `currentPrice` (same clamp BE already had). Underwater longs can no longer raise `currentStop` above spot; underwater shorts can no longer lower it below spot.
+
+**Why:**
+Paper soak DOTUSD (`3bc03cfb`, :3137 / `data/paper-3137`) held ~12h then logged `Holding: PnL -2.77%, stop 1.12` at price `1.1055` with stop `1.11795` (quick-kill `entry - 0.6×ATR`), and exited next loop as `Trailing/BE`. Peak never left entry; trail never armed — stop was raised through the market.
+
+**What to monitor / watch for:**
+- Holding decisions must never show long `currentStop > currentPrice` (or short stop below price) after a non-exit loop.
+- Quick-kill may leave the initial stop untouched when price is already through the would-be tighter level; time-kill / initial SL still apply.
+- Stay paper; do not loosen gates or enable live/ML.
+
+---
+
 ## 2026-09-09 19:05 UTC — Paper safety: proxy auth, live order assert, CAD sniper filter — cursor-cloud
 
 **Commits:** this branch

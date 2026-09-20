@@ -265,9 +265,16 @@ export async function checkExits(
       const tighterStop = isShort
         ? trade.entryPrice + (trade.entryPrice * atrPct / 100) * qkMult
         : trade.entryPrice - (trade.entryPrice * atrPct / 100) * qkMult;
-      const qkShouldUpdate = isShort
+      // Clamp: same invariant as BE (2b). Underwater duds can compute a
+      // "tighter" stop on the wrong side of spot (paper DOTUSD 2026-09-20:
+      // raised long stop to 1.118 while price was 1.1055 → next-loop phantom
+      // Trailing/BE exit). Never persist a stop through the market.
+      const qkOnValidSide = isShort
+        ? tighterStop > currentPrice
+        : tighterStop < currentPrice;
+      const qkShouldUpdate = qkOnValidSide && (isShort
         ? tighterStop < trade.currentStop
-        : tighterStop > trade.currentStop;
+        : tighterStop > trade.currentStop);
       if (qkShouldUpdate) {
         newStop = tighterStop;
         mutators.setStop(trade.id, newStop, trade);
