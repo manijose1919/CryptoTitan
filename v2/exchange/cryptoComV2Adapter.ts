@@ -6,6 +6,10 @@
 
 import type { ExchangeAdapter, OrderResult } from './types.ts';
 import { assertLiveOrdersAllowed } from '../engine/tradeMode.ts';
+import {
+  DEFAULT_WS_PRICE_MAX_AGE_MS,
+  isWsPriceFresh,
+} from './wsPriceFreshness.ts';
 
 // --- Fee Constants (Crypto.com) ---
 
@@ -65,10 +69,13 @@ export const cryptoComV2: ExchangeAdapter = {
   },
 
   async getLatestPrice(ticker: string): Promise<number> {
-    // Try WebSocket first (cached, faster)
+    // Prefer WebSocket only when the cached quote is fresh (see wsPriceFreshness).
     if (_wsService?.getLatestPrice) {
       const wsPrice = _wsService.getLatestPrice(ticker);
-      if (wsPrice && wsPrice > 0) return wsPrice;
+      const wsUpdatedAt = _wsService.getLatestPriceUpdatedAt?.(ticker) ?? null;
+      if (isWsPriceFresh(wsPrice, wsUpdatedAt, Date.now(), DEFAULT_WS_PRICE_MAX_AGE_MS)) {
+        return wsPrice as number;
+      }
     }
     // Fallback: REST candles, last close
     const adapter = getAdapter();

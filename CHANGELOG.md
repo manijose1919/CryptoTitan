@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-22 12:15 UTC — Reject stale WS quotes in getLatestPrice — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/exchange/wsPriceFreshness.ts`, `v2/exchange/wsPriceFreshness.test.ts`, `v2/exchange/krakenAdapter.ts`, `v2/exchange/cryptoComV2Adapter.ts`, `services/krakenWebsocketService.js`, `services/websocketService.js`, `CHANGELOG.md`
+**Stats baseline reset:** no — quote freshness only; no risk-gate / ticker / ML / live enablement
+
+**What changed:**
+WebSocket `latestPrices` now record per-ticker update timestamps. V2 Kraken/Crypto.com `getLatestPrice` only trusts a WS quote when it is ≤60s old; otherwise falls back to REST 1m close.
+
+**Why:**
+Paper soak SOLUSD (`2784ca72`, :3137) opened at 4h `close_price` ~117.32 and, in the same loop (`holdMs=1`), stop-loss'd on a WS quote of ~99.04 for −$35.52 — not a real 1ms market gap. Host suspend leaves stale WS prints while signal candles refresh via REST.
+
+**What to monitor / watch for:**
+- No same-loop entry→exit with |Δprice| ≫ ATR while spot (REST/Kraken ticker) agrees with entry.
+- After VM resume, first exits should REST-fallback until WS ticks arrive.
+- Stay paper; timer remains 12h.
+
+---
+
 ## 2026-09-20 00:10 UTC — Clamp quick-kill stop to valid side of price — cursor-cloud
 
 **Commits:** this branch

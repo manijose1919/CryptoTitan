@@ -37,11 +37,20 @@ const WS_URL = 'wss://ws.kraken.com/v2';
 const realtimeCandles = new Map();
 const MAX_BUFFERED_CANDLES = 200;
 
-// Latest trade prices: ticker -> price
+// Latest trade prices: ticker -> price, with per-ticker update times so
+// consumers can reject post-suspend / zombie-connection stale quotes
+// (paper SOLUSD 2026-09-22: WS still had ~99 while 4h close was ~117).
 const latestPrices = new Map();
+const latestPriceTimes = new Map();
 
 // Track last message time for heartbeat detection
 let lastMessageTime = 0;
+
+function setLatestPrice(ticker, price) {
+    if (!(price > 0)) return;
+    latestPrices.set(ticker, price);
+    latestPriceTimes.set(ticker, Date.now());
+}
 
 // ============================================
 // PAIR FORMAT CONVERSION
@@ -281,7 +290,7 @@ function handleOhlcUpdate(msg) {
         }
 
         // Update latest price
-        latestPrices.set(ticker, formatted.c);
+        setLatestPrice(ticker, formatted.c);
     }
 
     // Callback for each updated ticker
@@ -311,7 +320,7 @@ function handleTradeUpdate(msg) {
     if (isNaN(price)) return;
 
     if (price > 0) {
-        latestPrices.set(ticker, price);
+        setLatestPrice(ticker, price);
     }
 
     if (onTradeCallback) {
@@ -393,6 +402,14 @@ export function mergeCandles(restCandles, ticker) {
  */
 export function getLatestPrice(ticker) {
     return latestPrices.get(ticker) || null;
+}
+
+/**
+ * Epoch ms when getLatestPrice(ticker) was last updated, or null.
+ * Adapters use this to refuse stale WS quotes after suspend/zombie TCP.
+ */
+export function getLatestPriceUpdatedAt(ticker) {
+    return latestPriceTimes.get(ticker) ?? null;
 }
 
 /**

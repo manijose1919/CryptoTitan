@@ -267,6 +267,7 @@ declare module '*/services/krakenWebsocketService.js' {
   export function getRealtimeCandles(ticker: string): Array<Record<string, number>> | null;
   export function mergeCandles(restCandles: unknown[] | null, ticker: string): unknown[];
   export function getLatestPrice(ticker: string): number | null;
+  export function getLatestPriceUpdatedAt(ticker: string): number | null;
   export function isConnected(): boolean;
   export function getWebSocketStatus(): Record<string, unknown>;
   export function closeWebSocket(): void;
@@ -283,6 +284,7 @@ declare module '*/services/websocketService.js' {
   export function getRealtimeCandles(ticker: string): Array<Record<string, number>> | null;
   export function mergeCandles(restCandles: unknown[] | null, ticker: string): unknown[];
   export function getLatestPrice(ticker: string): number | null;
+  export function getLatestPriceUpdatedAt(ticker: string): number | null;
   export function isConnected(): boolean;
   export function getWebSocketStatus(): Record<string, unknown>;
   export function closeWebSocket(): void;

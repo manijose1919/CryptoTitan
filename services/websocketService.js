@@ -36,6 +36,13 @@ const MAX_BUFFERED_CANDLES = 200;
 
 // Latest trade prices
 const latestPrices = new Map();
+const latestPriceTimes = new Map();
+
+function setLatestPrice(ticker, price) {
+  if (!(price > 0)) return;
+  latestPrices.set(ticker, price);
+  latestPriceTimes.set(ticker, Date.now());
+}
 
 // Latency tracking
 let lastHeartbeatSentAt = 0;
@@ -272,7 +279,7 @@ function handleCandlestickUpdate(result) {
     }
 
     // Update latest price
-    latestPrices.set(ticker, formatted.c);
+    setLatestPrice(ticker, formatted.c);
   }
 
   if (onCandleCallback) {
@@ -293,7 +300,7 @@ function handleTradeUpdate(result) {
     const lastTrade = data[data.length - 1];
     const price = parseFloat(lastTrade.p || lastTrade.price || 0);
     if (price > 0) {
-      latestPrices.set(ticker, price);
+      setLatestPrice(ticker, price);
     }
 
     if (onTradeCallback) {
@@ -389,6 +396,13 @@ export function mergeCandles(restCandles, ticker) {
  */
 export function getLatestPrice(ticker) {
   return latestPrices.get(ticker) || null;
+}
+
+/**
+ * Epoch ms when getLatestPrice(ticker) was last updated, or null.
+ */
+export function getLatestPriceUpdatedAt(ticker) {
+  return latestPriceTimes.get(ticker) ?? null;
 }
 
 /**

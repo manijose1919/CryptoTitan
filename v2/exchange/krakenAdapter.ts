@@ -6,6 +6,10 @@
 import type { ExchangeAdapter, OrderResult } from './types.ts';
 import { V2_CONFIG } from '../engine/config.ts';
 import { assertLiveOrdersAllowed } from '../engine/tradeMode.ts';
+import {
+  DEFAULT_WS_PRICE_MAX_AGE_MS,
+  isWsPriceFresh,
+} from './wsPriceFreshness.ts';
 
 // --- Lazy-loaded references ---
 
@@ -52,10 +56,16 @@ export const krakenV2: ExchangeAdapter = {
   },
 
   async getLatestPrice(ticker: string): Promise<number> {
-    // Try WebSocket first (cached, faster)
+    // Prefer WebSocket only when the cached quote is fresh. After host
+    // suspend / zombie TCP, latestPrices can retain a pre-gap print while
+    // REST candles (and paper entry close_price) reflect the real market —
+    // paper SOLUSD same-loop stop at 99 vs entry 117 (2026-09-22).
     if (_wsService?.getLatestPrice) {
       const wsPrice = _wsService.getLatestPrice(ticker);
-      if (wsPrice && wsPrice > 0) return wsPrice;
+      const wsUpdatedAt = _wsService.getLatestPriceUpdatedAt?.(ticker) ?? null;
+      if (isWsPriceFresh(wsPrice, wsUpdatedAt, Date.now(), DEFAULT_WS_PRICE_MAX_AGE_MS)) {
+        return wsPrice as number;
+      }
     }
     // Fallback: REST candles, last close.
     // krakenAdapter.getCandles returns rows shaped {t,o,h,l,c,v} — abbreviated
