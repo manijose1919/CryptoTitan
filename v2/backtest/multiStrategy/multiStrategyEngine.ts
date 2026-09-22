@@ -4,9 +4,23 @@ import { computeSignals, detectRegime } from '../../indicators/indicators.ts';
 import { detectEntry } from './entryDetectors.ts';
 import { checkStrategyExit } from './exitHandlers.ts';
 import { loadAllCandles } from '../candleCache.ts';
+import { applyPaperSlippage } from '../../engine/tradeAccounting.ts';
 
 const MIN_CANDLES = 50;
 let _tradeCounter = 0;
+
+/** Fee-aware execution controls. Defaults preserve legacy same-bar behavior. */
+export interface MSExecutionOpts {
+  /** Signal on bar N, fill at bar N+1 open (causal). Default false (legacy). */
+  nextBarOpen?: boolean;
+  /** Adverse slippage per side (e.g. 0.0005). Default 0. */
+  slippagePerSide?: number;
+  /**
+   * When true (default if nextBarOpen): if bar opens through the stop,
+   * fill at open instead of the stop price (gap-aware).
+   */
+  gapAwareStops?: boolean;
+}
 
 function nextId(strategy: string, ticker: string): string {
   return `ms_${strategy}_${ticker}_${++_tradeCounter}`;
@@ -20,6 +34,22 @@ function intervalToMinutes(interval: string): number {
   return 60;
 }
 
+function scaleStopsForFill(
+  signalEntry: number,
+  fillEntry: number,
+  stopLoss: number,
+  takeProfit: number,
+): { stopLoss: number; takeProfit: number } {
+  if (!(signalEntry > 0) || fillEntry === signalEntry) {
+    return { stopLoss, takeProfit };
+  }
+  const scale = fillEntry / signalEntry;
+  return {
+    stopLoss: stopLoss * scale,
+    takeProfit: takeProfit > 0 ? takeProfit * scale : takeProfit,
+  };
+}
+
 function simulateTicker(
   ticker: string,
   candles: Candle[],
@@ -27,15 +57,82 @@ function simulateTicker(
   timeframe: string,
   budget: number,
   feeRoundTrip: number,
+  exec: MSExecutionOpts = {},
 ): MSTrade[] {
   const intervalMin = intervalToMinutes(timeframe);
+  const nextBarOpen = exec.nextBarOpen === true;
+  const slip = exec.slippagePerSide ?? 0;
+  const gapAware = exec.gapAwareStops ?? nextBarOpen;
   let cash = budget;
   const openTrades: MSTrade[] = [];
   const closedTrades: MSTrade[] = [];
 
-  for (let bar = MIN_CANDLES; bar < candles.length; bar++) {
+  type Pending = {
+    signalBar: number;
+    confidence: number;
+    signalEntry: number;
+    stopLoss: number;
+    takeProfit: number;
+    entryRegime: string;
+    atrPercent: number;
+    metadata: Record<string, number>;
+  };
+  let pending: Pending | null = null;
+
+  const lastSignalBar = nextBarOpen ? candles.length - 2 : candles.length - 1;
+
+  for (let bar = MIN_CANDLES; bar <= lastSignalBar; bar++) {
     const window = candles.slice(0, bar + 1);
     const currentBar = candles[bar];
+
+    // Fill pending next-bar entry at this open (before exits so same-bar risk applies).
+    if (nextBarOpen && pending && pending.signalBar === bar - 1) {
+      if (openTrades.length < strategy.maxOpenPositions && cash > 0) {
+        const rawOpen = currentBar.open;
+        const fillEntry = applyPaperSlippage(rawOpen, 'long', 'entry', slip);
+        const scaled = scaleStopsForFill(pending.signalEntry, fillEntry, pending.stopLoss, pending.takeProfit);
+        const equity = cash + openTrades.reduce((s, t) => s + t.positionSizeUsd, 0);
+        let posSize = equity * strategy.positionSizePercent * pending.confidence;
+        const maxPos = equity * strategy.maxPositionPercent;
+        if (posSize > maxPos) posSize = maxPos;
+        if (posSize > cash) posSize = cash;
+        if (posSize >= 5) {
+          const qty = posSize / fillEntry;
+          openTrades.push({
+            id: nextId(strategy.name, ticker),
+            strategy: strategy.name,
+            ticker,
+            timeframe,
+            entryBar: bar,
+            entryPrice: fillEntry,
+            entryTime: currentBar.time,
+            entryRegime: pending.entryRegime,
+            entryConfidence: pending.confidence,
+            exitBar: null,
+            exitPrice: null,
+            exitTime: null,
+            exitReason: null,
+            quantity: qty,
+            positionSizeUsd: posSize,
+            stopLoss: scaled.stopLoss,
+            takeProfit: scaled.takeProfit,
+            currentStop: scaled.stopLoss,
+            trailingActivated: false,
+            peakPrice: fillEntry,
+            peakHistogram: pending.metadata.peakHistogram ?? 0,
+            pnlGross: null,
+            pnlNet: null,
+            feesPaid: 0,
+            holdBars: 0,
+            holdDurationMs: null,
+            atrPercent: pending.atrPercent,
+            metadata: pending.metadata,
+          });
+          cash -= posSize;
+        }
+      }
+      pending = null;
+    }
 
     // Check exits first
     const stillOpen: MSTrade[] = [];
@@ -54,10 +151,17 @@ function simulateTicker(
       trade.peakHistogram = result.peakHistogram;
 
       if (result.shouldExit) {
-        const pnlGross = (result.exitPrice - trade.entryPrice) * trade.quantity;
+        let exitPrice = result.exitPrice;
+        if (gapAware && result.exitReason === 'stop_loss' && currentBar.open <= trade.currentStop) {
+          exitPrice = currentBar.open;
+        }
+        if (slip > 0) {
+          exitPrice = applyPaperSlippage(exitPrice, 'long', 'exit', slip);
+        }
+        const pnlGross = (exitPrice - trade.entryPrice) * trade.quantity;
         const fees = trade.positionSizeUsd * feeRoundTrip;
         trade.exitBar = bar;
-        trade.exitPrice = result.exitPrice;
+        trade.exitPrice = exitPrice;
         trade.exitTime = currentBar.time;
         trade.exitReason = result.exitReason;
         trade.pnlGross = pnlGross;
@@ -74,16 +178,32 @@ function simulateTicker(
     openTrades.length = 0;
     openTrades.push(...stillOpen);
 
-    // Check entry
+    // Detect entry signal on this bar
     if (openTrades.length >= strategy.maxOpenPositions) continue;
     if (cash <= 0) continue;
 
-    const { signals, regime } = computeSignals(window);
+    const { signals } = computeSignals(window);
     const regimeResult = detectRegime(window);
     const entry = detectEntry(strategy, window, signals, regimeResult);
 
     if (!entry.shouldEnter) continue;
 
+    if (nextBarOpen) {
+      // Queue for fill at next open (causal).
+      pending = {
+        signalBar: bar,
+        confidence: entry.confidence,
+        signalEntry: entry.entryPrice,
+        stopLoss: entry.stopLoss,
+        takeProfit: entry.takeProfit,
+        entryRegime: regimeResult.regime,
+        atrPercent: (signals.atr_percent as number) ?? 0,
+        metadata: entry.metadata,
+      };
+      continue;
+    }
+
+    // Legacy same-bar fill path
     const equity = cash + openTrades.reduce((s, t) => s + t.positionSizeUsd, 0);
     let posSize = equity * strategy.positionSizePercent * entry.confidence;
     const maxPos = equity * strategy.maxPositionPercent;
@@ -91,7 +211,11 @@ function simulateTicker(
     if (posSize > cash) posSize = cash;
     if (posSize < 5) continue;
 
-    const qty = posSize / entry.entryPrice;
+    const fillEntry = slip > 0
+      ? applyPaperSlippage(entry.entryPrice, 'long', 'entry', slip)
+      : entry.entryPrice;
+    const scaled = scaleStopsForFill(entry.entryPrice, fillEntry, entry.stopLoss, entry.takeProfit);
+    const qty = posSize / fillEntry;
 
     const trade: MSTrade = {
       id: nextId(strategy.name, ticker),
@@ -99,7 +223,7 @@ function simulateTicker(
       ticker,
       timeframe,
       entryBar: bar,
-      entryPrice: entry.entryPrice,
+      entryPrice: fillEntry,
       entryTime: currentBar.time,
       entryRegime: regimeResult.regime,
       entryConfidence: entry.confidence,
@@ -109,11 +233,11 @@ function simulateTicker(
       exitReason: null,
       quantity: qty,
       positionSizeUsd: posSize,
-      stopLoss: entry.stopLoss,
-      takeProfit: entry.takeProfit,
-      currentStop: entry.stopLoss,
+      stopLoss: scaled.stopLoss,
+      takeProfit: scaled.takeProfit,
+      currentStop: scaled.stopLoss,
       trailingActivated: false,
-      peakPrice: entry.entryPrice,
+      peakPrice: fillEntry,
       peakHistogram: entry.metadata.peakHistogram ?? 0,
       pnlGross: null,
       pnlNet: null,
@@ -132,10 +256,12 @@ function simulateTicker(
   for (const trade of openTrades) {
     const lastBar = candles[candles.length - 1];
     const holdBars = candles.length - 1 - trade.entryBar;
-    const pnlGross = (lastBar.close - trade.entryPrice) * trade.quantity;
+    let exitPrice = lastBar.close;
+    if (slip > 0) exitPrice = applyPaperSlippage(exitPrice, 'long', 'exit', slip);
+    const pnlGross = (exitPrice - trade.entryPrice) * trade.quantity;
     const fees = trade.positionSizeUsd * feeRoundTrip;
     trade.exitBar = candles.length - 1;
-    trade.exitPrice = lastBar.close;
+    trade.exitPrice = exitPrice;
     trade.exitTime = lastBar.time;
     trade.exitReason = 'force_close';
     trade.pnlGross = pnlGross;
@@ -232,8 +358,10 @@ export async function runMultiStrategyBacktest(params: {
   timeframes: string[];
   strategies: StrategyConfig[];
   feeRoundTrip: number;
+  execution?: MSExecutionOpts;
 }): Promise<MSReport> {
   const results: StrategyResult[] = [];
+  const exec = params.execution ?? {};
 
   for (const tf of params.timeframes) {
     console.log(`\nLoading ${tf} candles...`);
@@ -250,7 +378,9 @@ export async function runMultiStrategyBacktest(params: {
         const candles = candleMap.get(ticker);
         if (!candles || candles.length < MIN_CANDLES) continue;
 
-        const trades = simulateTicker(ticker, candles, strategy, tf, budgetPerTicker, params.feeRoundTrip);
+        const trades = simulateTicker(
+          ticker, candles, strategy, tf, budgetPerTicker, params.feeRoundTrip, exec,
+        );
         console.log(`    ${ticker}: ${trades.length} trades, ${trades.filter(t => (t.pnlNet ?? 0) > 0).length}W/${trades.filter(t => (t.pnlNet ?? 0) <= 0).length}L, PnL $${trades.reduce((s, t) => s + (t.pnlNet ?? 0), 0).toFixed(2)}`);
         allTrades.push(...trades);
       }
