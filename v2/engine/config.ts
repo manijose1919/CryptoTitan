@@ -98,7 +98,10 @@ export const V2_CONFIG = {
   // --- Exit Management ---
   STOP_LOSS_ATR_MULT: 1.5,  // 2026-06-03: 2.0→1.5. Live data: SL avg -$11.13 vs trail avg +$2.13 (5.2:1 ratio). Tighter SL cuts loss size ~33%. Backtest: +$6,391→+$7,186, PF 9.07→9.50.
   TAKE_PROFIT_ATR_MULT: 4.0,       // 2026-04-29: 3.5 → 4.0 (R:R 1.4 → 1.6). Avg_win problem: at R:R 1.4 the cohort was avg_win $0.97 vs needed ~$1.10 for 59% WR break-even. Wider TP makes individual TP hits +$2.00 instead of +$1.75. Risk: historical R:R 1.6 cohort underperformed R:R 1.4 (-$10.89 vs -$1.89), but that was without working BE/trailing stops. With current trailing-active@1% catching moderate winners, wider TP may behave differently. Deliberate test under user's risk-on framing 2026-04-29.
-  TRAILING_ACTIVATE_PERCENT: 0.01, // 2026-05-18: 0.025→0.015. At 2.5% most trades peaked +1-2% and never trailed. At 1.5% trailing engages on moderate moves — PF 1.67→3.71, time_kill 72→26 trades.
+  // 2026-09-28: 0.01→0.014 to match STRATEGY_EXIT_CONFIGS.TREND (paper/live exitManager).
+  // backtestEngine still reads this knob; leaving it at 0.01 made fee-aware ablations diverge from paper trails.
+  TRAILING_ACTIVATE_PERCENT: 0.014, // was 0.01; 2026-05-18 history: 0.025→0.015→0.01 for earlier engagement.
+
   TRAILING_GIVEBACK_PERCENT: 0.03,  // 2026-05-06 Config A: 0.25 → 0.03 — extreme tight trail. Once activated, surrender only 3% of peak gain. The trailing-exit P&L moved from +$216 (PF 1.43) to +$312 (PF 1.62) on AKT+ZEC+COMP 90d
   TIME_KILL_MS: 6 * 60 * 60 * 1000,      // 6h — was 8h; backtest shows time_kill is #1 PnL drag (-$125/128 trades). Cutting 2h earlier reduces fee bleed on stale positions.
   TIME_KILL_MIN_MOVE: 0.007,
@@ -170,10 +173,8 @@ export interface StrategyExitConfig {
 export const STRATEGY_EXIT_CONFIGS: Record<string, StrategyExitConfig> = {
   TREND: {
     slAtrMult: 1.5, tpAtrMult: 4.0,
-    // 2026-06-09: 0.025→0.01 to match V2_CONFIG.TRAILING_ACTIVATE_PERCENT.
-    // exitManager reads ONLY this value — V2_CONFIG's tuned 0.01 was dead config
-    // since 2026-05-18 while live trades silently trailed at 2.5% (the backtest
-    // that justified 0.01/0.015 claimed PF 1.67→3.71 from this one change).
+    // exitManager reads THIS value (not V2_CONFIG). Kept in sync with
+    // V2_CONFIG.TRAILING_ACTIVATE_PERCENT so backtestEngine ablations match paper.
     trailActivatePercent: 0.014, trailGivebackPercent: 0.03,  // 2026-06-19: 0.01→0.014 (~75% of 1.8% typical TP). At 1%, trail activated in noise zone — reversals still netted below breakeven after fees. At 1.4%, minimum locked-in gross is ~1.35%.
     timeKillBars: 2, timeKillBarsByTf: { '1h': 4 }, timeKillMinMove: 0.007,  // 2026-07-14: 1h kills at 2 bars were premature — ≥60% of killed 1h trades reached trail activation within 4h (see docs/reviews/2026-07-14-sprint-review.md). 4h keeps 2 bars.
     quickKillBars: 1, quickKillMinGain: 0.006, quickKillSlMult: 1.2,
