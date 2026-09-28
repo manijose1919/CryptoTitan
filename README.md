@@ -1,17 +1,25 @@
 # CryptoTitan
 
-Canadian-universe, paper-first cryptocurrency daytrading engine. It streams Kraken USD markets, scans a fixed ticker set, and manages simulated positions through a single Node process plus a React monitoring dashboard.
-
-![CI](https://github.com/manijose1919/cryptoGod/actions/workflows/ci.yml/badge.svg)
+![Version](https://img.shields.io/badge/version-2.0-blue)
+![Lineage](https://img.shields.io/badge/successor%20of-CryptoGod-lightgrey)
+![CI](https://github.com/manijose1919/CryptoTitan/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-Proprietary-red)
 ![Node](https://img.shields.io/badge/node-20%2B-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
 ![Mode](https://img.shields.io/badge/default-paper--only-blue)
 
-This codebase is a hard fork of the CryptoGod engine, retargeted for a **Canadian Kraken USD account**. It is **not** a proven profitable live system. The current configuration exists to gather a forward paper sample under conservative fills, not to trade real capital.
+**CryptoTitan is the official v2.0 continuation of [CryptoGod](https://github.com/manijose1919/cryptoGod).**  
+CryptoGod is **discontinued** for further development; new work happens here.
 
-**Intended private remote:** `https://github.com/manijose1919/CryptoTitan`  
-**Current public lineage (until the private remote is granted to this agent):** `https://github.com/manijose1919/cryptoGod`
+Canadian-universe, paper-first cryptocurrency daytrading engine. It streams Kraken USD markets, scans a fixed ticker set, and manages simulated positions through a single Node process plus a React monitoring dashboard.
+
+This codebase is a hard fork of the CryptoGod engine, retargeted for a **Canadian Kraken USD account**, with dual live interlock, adverse paper slippage, and gap-aware stop fills. It is **not** a proven profitable live system. The current configuration exists to gather a forward paper sample under conservative fills, not to trade real capital.
+
+| | |
+|---|---|
+| **This repo (active)** | https://github.com/manijose1919/CryptoTitan |
+| **CryptoGod (discontinued lineage)** | https://github.com/manijose1919/cryptoGod |
+| **Historical CryptoGod docs** | [cryptoGod `docs/`](https://github.com/manijose1919/cryptoGod/tree/master/docs) |
 
 ## Risk notice
 
@@ -122,11 +130,8 @@ The main loop lives in `v2/engine/tradeEngine.ts`:
 Prerequisites: Node.js 20+.
 
 ```bash
-# Prefer the private CryptoTitan remote once you have access.
-# Until then this history lives on the cryptoGod lineage branch.
-git clone https://github.com/manijose1919/cryptoGod.git
-cd cryptoGod
-git checkout cursor/paper-trading-hardening-c9fd
+git clone https://github.com/manijose1919/CryptoTitan.git
+cd CryptoTitan
 npm install
 
 cp .env.example .env
@@ -195,6 +200,7 @@ CHANGELOG.md           Bidirectional ship record
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — boot sequence, modules, persistence, deploy
 - [`CHANGELOG.md`](CHANGELOG.md) — what shipped and what to monitor
 - [`CLAUDE.md`](CLAUDE.md) — engineering and operational rules
+- [CryptoGod docs (historical)](https://github.com/manijose1919/cryptoGod/tree/master/docs) — discontinued predecessor audit trail
 
 ## License
 
