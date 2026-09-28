@@ -1,9 +1,13 @@
 # Documentation index
 
-**CryptoTitan** is the Canadian paper-first fork of this engine. Current runtime posture, CAD ticker
-allowlist, live interlock, and corrected replay numbers live in the root [`README.md`](../README.md).
+**CryptoTitan is CryptoGod v2.0** — the active continuation of
+[CryptoGod](https://github.com/manijose1919/cryptoGod) (that repo is discontinued for further
+development). Current runtime posture, CAD ticker allowlist, live interlock, and corrected replay
+numbers live in the root [`README.md`](../README.md).
+
 Historical specs below still describe CryptoGod-era experiments (FIL/ICP pairs, MR, sniper, mid-cap
-universes). Treat those as audit trail, not as the running configuration.
+universes). Treat those as audit trail, not as the running configuration. The predecessor docs index
+remains at [cryptoGod `docs/README.md`](https://github.com/manijose1919/cryptoGod/blob/master/docs/README.md).
 
 Everything in this directory is a record of a decision — a design that was agreed, a plan that was
 executed, an analysis that changed (or explicitly did not change) the configuration. Documents are

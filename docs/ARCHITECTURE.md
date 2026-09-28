@@ -1,9 +1,11 @@
 # Architecture
 
-This document is for someone who is going to modify **CryptoTitan**. It covers how the process is run,
-what happens at boot, what each module in `v2/` is responsible for, how data moves through the system,
-and how a change reaches a server. Runtime posture (paper-only, CAD ticker allowlist, live interlock)
-is summarized in the [README](../README.md).
+This document is for someone who is going to modify **CryptoTitan** (CryptoGod v2.0). It covers how
+the process is run, what happens at boot, what each module in `v2/` is responsible for, how data moves
+through the system, and how a change reaches a server. Runtime posture (paper-only, CAD ticker
+allowlist, live interlock) is summarized in the [README](../README.md).
+
+Predecessor (discontinued): [CryptoGod architecture](https://github.com/manijose1919/cryptoGod/blob/master/docs/ARCHITECTURE.md).
 
 ---
 

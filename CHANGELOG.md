@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-28 15:09 UTC — Announce CryptoTitan as CryptoGod v2.0 continuation — local-claude
+
+**Commits:** (this commit)
+**Files changed:** `README.md`, `docs/README.md`, `docs/ARCHITECTURE.md`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — documentation only; no trading config change.
+
+**What changed:**
+Documented CryptoTitan as the **official v2.0 continuation** of CryptoGod. README lineage, clone URL, CI badge, docs index, and architecture now point at this repo as active and at CryptoGod as the discontinued historical lineage (with cross-links both ways).
+
+**Why:**
+Readers following CryptoGod need a clear successor path; this repo is where paper hardening and Canadian-universe work continues.
+
+**What to monitor / watch for:**
+- Docs only — no engine or deploy change.
+- Ensure GitHub visibility matches intent if CryptoGod's public links should resolve for external readers.
+- Rollback: revert this docs commit.
+
+---
+
 ## 2026-09-09 17:30 UTC — CryptoTitan documentation and identity alignment — local-claude
 
 **Commits:** this branch
