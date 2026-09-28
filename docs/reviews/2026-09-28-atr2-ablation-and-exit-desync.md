@@ -40,7 +40,7 @@ Fee-aware TREND on CAD10 still shows avgWin ~$3 vs avgLoss ~$7–10. Entry floor
 
 Paper/live `exitManager` reads `STRATEGY_EXIT_CONFIGS.TREND.trailActivatePercent` (**0.014**). Single-strategy `backtestEngine` reads `V2_CONFIG.TRAILING_ACTIVATE_PERCENT` (**was 0.01**). Ablations that mutate `V2_CONFIG` trail knobs therefore do not match paper exit behavior. Syncing `V2_CONFIG.TRAILING_ACTIVATE_PERCENT → 0.014` aligns research fills with paper without changing live exitManager paths that already use STRATEGY_EXIT.
 
-Residual desync (not fixed here): `backtestEngine` time-kill uses fixed `V2_CONFIG.TIME_KILL_MS` (6h); paper TREND with timeframe uses `timeKillBars×tf` (4h→8h, 1h→4h). Porting `STRATEGY_EXIT_CONFIGS` into `backtestEngine` is the proper follow-up if further exit ablations are run.
+Residual desync (**fixed 2026-09-28 15:35 UTC**): `backtestEngine` now resolves TREND trail/quick-kill/time-kill from `STRATEGY_EXIT_CONFIGS` (bar×tf), matching paper `exitManager`. See `v2/backtest/backtestEngine.exitParity.test.ts`.
 
 ## Recommendation
 

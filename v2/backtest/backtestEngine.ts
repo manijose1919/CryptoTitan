@@ -7,7 +7,8 @@
 
 import type { Candle } from '../pipeline/types.ts';
 import { EXIT_REASON } from '../pipeline/types.ts';
-import { V2_CONFIG, MOMENTUM_CONFIG } from '../engine/config.ts';
+import { V2_CONFIG, MOMENTUM_CONFIG, STRATEGY_EXIT_CONFIGS } from '../engine/config.ts';
+import type { StrategyExitConfig } from '../engine/config.ts';
 import { computeSignals } from '../indicators/indicators.ts';
 import { evaluateSignals } from '../pipeline/signalGenerator.ts';
 import { detectMomentumEntry } from '../pipeline/momentumSignal.ts';
@@ -46,6 +47,25 @@ interface ExitCheckResult {
 }
 
 /**
+ * Paper `exitManager` reads STRATEGY_EXIT_CONFIGS (bar×tf timers + trail %).
+ * Historically this backtest used V2_CONFIG wall-clock TIME_KILL_MS (6h) and a
+ * desynced trail activate — so ablations disagreed with the paper soak.
+ * Resolve TREND exit knobs for the backtest interval (default engine path).
+ */
+export function resolvePaperTrendExitConfig(interval: string): StrategyExitConfig & {
+  trailActivatePercentFloored: number;
+  timeKillBarsResolved: number;
+} {
+  const exitCfg: StrategyExitConfig = STRATEGY_EXIT_CONFIGS.TREND;
+  const timeKillBarsResolved = exitCfg.timeKillBarsByTf?.[interval] ?? exitCfg.timeKillBars;
+  const trailActivatePercentFloored = Math.max(
+    exitCfg.trailActivatePercent,
+    V2_CONFIG.FEE_ROUND_TRIP_TAKER * V2_CONFIG.TRAIL_ACTIVATE_FEE_FLOOR_MULT,
+  );
+  return { ...exitCfg, trailActivatePercentFloored, timeKillBarsResolved };
+}
+
+/**
  * Simulate intra-bar price sequence to match live engine behavior.
  * Live checks exits every 60s; this simulates 4 price points per bar.
  * Ordering depends on config.barSequence (default 'pessimistic'):
@@ -55,15 +75,17 @@ interface ExitCheckResult {
  *   optimistic (legacy, for comparison runs): Open → favorable → adverse → Close
  * At each step: update peak, check BE/trailing/stops — just like live.
  */
-function checkExitOnBar(
+export function checkExitOnBar(
   trade: BacktestTrade,
   bar: Candle,
   barIndex: number,
   config: BacktestConfig,
 ): ExitCheckResult {
   const holdBars = barIndex - trade.entryBar;
-  const holdMs = holdBars * config.intervalMinutes * 60 * 1000;
   const isShort = trade.side === 'short';
+  const exitCfg = resolvePaperTrendExitConfig(config.interval);
+  const trailActivate = exitCfg.trailActivatePercentFloored;
+  const trailGiveback = exitCfg.trailGivebackPercent;
 
   let currentStop = trade.currentStop;
   let trailingActivated = trade.trailingActivated;
@@ -127,7 +149,7 @@ function checkExitOnBar(
       : (price - trade.entryPrice) / trade.entryPrice;
 
     // Break-even stop
-    const beTrigger = V2_CONFIG.TRAILING_ACTIVATE_PERCENT * 0.6;
+    const beTrigger = trailActivate * 0.6;
     const atrForBE = (trade.atrPercent || 1.0) / 100;
     const beOffset = atrForBE * 0.5;
     if (pnl >= beTrigger) {
@@ -138,16 +160,16 @@ function checkExitOnBar(
       if (beShouldUpdate) currentStop = beStop;
     }
 
-    // Trailing stop
-    if (pnl >= V2_CONFIG.TRAILING_ACTIVATE_PERCENT) {
+    // Trailing stop — paper STRATEGY_EXIT_CONFIGS.TREND (+ fee floor)
+    if (pnl >= trailActivate) {
       trailingActivated = true;
 
-      let givebackFraction = V2_CONFIG.TRAILING_GIVEBACK_PERCENT;
+      let givebackFraction = trailGiveback;
       if (trade.atrPercent > 2.0) givebackFraction *= 1.3;
       else if (trade.atrPercent > 1.0) givebackFraction *= 1.1;
       else if (trade.atrPercent < 0.3) givebackFraction *= 0.7;
 
-      const profitVsActivation = pnl / V2_CONFIG.TRAILING_ACTIVATE_PERCENT;
+      const profitVsActivation = pnl / trailActivate;
       if (profitVsActivation < 1.5) givebackFraction *= 1.5;
       else if (profitVsActivation < 2.0) {
         const t = (profitVsActivation - 1.5) / 0.5;
@@ -171,27 +193,28 @@ function checkExitOnBar(
     }
   }
 
-  // Quick-kill (checked at bar end, not intra-bar)
-  const quickKillBars = Math.ceil(V2_CONFIG.QUICK_KILL_AFTER_MS / (config.intervalMinutes * 60 * 1000));
+  // Quick-kill (checked at bar end) — paper TREND quickKillBars / minGain / slMult
   const peakPnlPercent = isShort
     ? (trade.entryPrice - trade.peakPrice) / trade.entryPrice
     : (trade.peakPrice - trade.entryPrice) / trade.entryPrice;
-  if (holdBars >= quickKillBars && peakPnlPercent < V2_CONFIG.QUICK_KILL_MIN_GAIN && trade.atrPercent > 0) {
-    const qkMult = trade.atrPercent > 1.5 ? V2_CONFIG.QUICK_KILL_SL_ATR_MULT * 0.5
-                 : trade.atrPercent > 1.0 ? V2_CONFIG.QUICK_KILL_SL_ATR_MULT * 0.75
-                 : V2_CONFIG.QUICK_KILL_SL_ATR_MULT;
+  if (holdBars >= exitCfg.quickKillBars && peakPnlPercent < exitCfg.quickKillMinGain && trade.atrPercent > 0) {
+    const qkMult = trade.atrPercent > 1.5 ? exitCfg.quickKillSlMult * 0.5
+                 : trade.atrPercent > 1.0 ? exitCfg.quickKillSlMult * 0.75
+                 : exitCfg.quickKillSlMult;
     const tighterStop = isShort
       ? trade.entryPrice + (trade.entryPrice * trade.atrPercent / 100) * qkMult
       : trade.entryPrice - (trade.entryPrice * trade.atrPercent / 100) * qkMult;
-    const qkShouldUpdate = isShort ? tighterStop < currentStop : tighterStop > currentStop;
+    // Mirror paper exitManager: never place quick-kill stop through the market.
+    const qkOnValidSide = isShort ? tighterStop > bar.close : tighterStop < bar.close;
+    const qkShouldUpdate = qkOnValidSide && (isShort ? tighterStop < currentStop : tighterStop > currentStop);
     if (qkShouldUpdate) currentStop = tighterStop;
   }
 
-  // Time kill (checked at bar end)
+  // Time kill (bar×tf, matching paper exitManager) — not V2_CONFIG.TIME_KILL_MS wall clock
   const pnlAtClose = isShort
     ? (trade.entryPrice - bar.close) / trade.entryPrice
     : (bar.close - trade.entryPrice) / trade.entryPrice;
-  if (holdMs > V2_CONFIG.TIME_KILL_MS && Math.abs(pnlAtClose) < V2_CONFIG.TIME_KILL_MIN_MOVE) {
+  if (holdBars >= exitCfg.timeKillBarsResolved && Math.abs(pnlAtClose) < exitCfg.timeKillMinMove) {
     return {
       shouldExit: true,
       exitPrice: bar.close,

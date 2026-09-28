@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-28 15:35 UTC — backtestEngine exit parity with paper STRATEGY_EXIT_CONFIGS — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/backtest/backtestEngine.ts`, `v2/backtest/backtestEngine.exitParity.test.ts`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — research/backtest fidelity only; paper runtime unchanged.
+
+**What changed:**
+`checkExitOnBar` now resolves TREND trail activate (fee-floored), trail giveback, quick-kill bars/minGain/slMult, and **time-kill as bar×tf** from `STRATEGY_EXIT_CONFIGS.TREND` (same source as paper `exitManager`). Quick-kill also clamps stops to the valid side of bar close. Unit tests lock 4h/1h bar resolution and 2-bar time-kill semantics.
+
+**Why:**
+Exit ablations were still using `V2_CONFIG.TIME_KILL_MS` (6h wall) while paper kills after `timeKillBars × tf` (2×4h). Without parity, research cannot steer paper profitability.
+
+**What to monitor / watch for:**
+- Re-run fee-aware TREND exit ablations before promoting any paper exit knob.
+- Paper :3137 behavior unchanged by this commit.
+- Rollback: revert this commit.
+
+---
+
 ## 2026-09-28 15:25 UTC — ATR≥2.0 ablation (no promote) + trail-activate research sync — cursor-cloud
 
 **Commits:** this branch
@@ -62,7 +81,7 @@ Jul-23 live bands suggested edge in ATR 2–3%; needed a fee-aware half-split be
 
 **What to monitor / watch for:**
 - Stay paper. Do not raise ATR floor. Do not enable ML/live.
-- Residual: `backtestEngine` still uses fixed `TIME_KILL_MS` (6h) vs paper bar×tf time kills — port STRATEGY_EXIT into backtest before further exit mining.
+- Residual addressed in the 15:35 UTC entry (`STRATEGY_EXIT_CONFIGS` ported into `backtestEngine`).
 - Rollback: revert the config one-liner only (`TRAILING_ACTIVATE_PERCENT` → 0.01); does not change live exitManager.
 
 ---
