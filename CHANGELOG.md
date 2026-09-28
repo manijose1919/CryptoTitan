@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-28 15:25 UTC — ATR≥2.0 ablation (no promote) + trail-activate research sync — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-atr2-ablation.ts`, `docs/reviews/2026-09-28-atr2-ablation-and-exit-desync.md`, `v2/engine/config.ts` (`TRAILING_ACTIVATE_PERCENT` 0.01→0.014), `CHANGELOG.md`
+**Stats baseline reset:** **no** — paper exitManager already used STRATEGY_EXIT 0.014; this only aligns backtest/research with paper. No ATR floor / regime / ML / live change.
+
+**What changed:**
+- Ran fee-aware CAD10 TREND ablation of `MIN_ATR_PERCENT` 1.0→2.0 (highest-leverage untested entry filter after the locked Sep-22 matrix). **Failed promotion bar** (OOS PF 0.641, net −$35.35). Research note recorded; **no ATR promote**.
+- Synced `V2_CONFIG.TRAILING_ACTIVATE_PERCENT` to **0.014** so `backtestEngine` matches `STRATEGY_EXIT_CONFIGS.TREND` / paper `exitManager`.
+
+**Why:**
+Jul-23 live bands suggested edge in ATR 2–3%; needed a fee-aware half-split before any floor raise. Separately, trail ablations were mutating a 1% V2_CONFIG knob while paper trailed at 1.4%.
+
+**What to monitor / watch for:**
+- Stay paper. Do not raise ATR floor. Do not enable ML/live.
+- Residual: `backtestEngine` still uses fixed `TIME_KILL_MS` (6h) vs paper bar×tf time kills — port STRATEGY_EXIT into backtest before further exit mining.
+- Rollback: revert the config one-liner only (`TRAILING_ACTIVATE_PERCENT` → 0.01); does not change live exitManager.
+
+---
+
 ## 2026-09-28 15:09 UTC — Announce CryptoTitan as CryptoGod v2.0 continuation — local-claude
 
 **Commits:** merged from main
