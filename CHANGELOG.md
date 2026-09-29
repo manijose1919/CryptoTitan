@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-29 12:05 UTC — entry/regime ablations (no promote); refresh Evidence under parity — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-entry-regime-ablation.ts`, `docs/reviews/2026-09-29-entry-regime-ablation.md`, `README.md`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — docs/research only; paper gates unchanged.
+
+**What changed:**
+- Fee-aware CAD10 entry/regime matrix (score, confidence, expected-return, volume, momentum-off, allow_UP). **anyPromote=false.** Adding `UP` crushed earlier-half PF to 0.23.
+- README Evidence + risk notice updated to the parity-protocol OOS (PF≈0.50 / −$74) — older PF≈1.02 windows are superseded for promotion decisions. Documented trail fee floor ≈1.56%.
+
+**Why:**
+Exit mining failed last cycle; entry threshold sweeps and regime loosening also fail. Public docs must not advertise near-breakeven under a protocol we no longer trust for promotion.
+
+**What to monitor / watch for:**
+- Stay paper. Do not add `UP`. Do not promote threshold tweaks that are non-binding on this sample.
+- Next research: avgLoss/signal quality, not more gate knobs.
+- Rollback: revert this docs/research commit.
+
+---
+
 ## 2026-09-29 00:05 UTC — TREND exit-parity ablations (no promote) + entry SL/TP parity — cursor-cloud
 
 **Commits:** this branch

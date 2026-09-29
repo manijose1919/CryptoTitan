@@ -25,7 +25,7 @@ This codebase is a hard fork of the CryptoGod engine, retargeted for a **Canadia
 
 > This software can place orders on a live cryptocurrency exchange. When live mode is enabled it will buy and sell real assets with real money, automatically, without a human in the loop. Cryptocurrency trading can result in total loss of capital.
 >
-> Nothing in this repository is financial advice. Corrected fee-aware replay of the current Canadian universe is **approximately break-even** (see Evidence; refreshed 90d PF 1.02 with a negative first half). That is not an edge. Paper profits, if they appear later, still do not predict live returns. The software is provided without warranty; see [`LICENSE`](LICENSE). You are solely responsible for anything it does with your money.
+> Nothing in this repository is financial advice. Fee-aware replay under paper exit parity currently shows a **negative** Canadian-universe edge (see Evidence; OOS PF ≈ 0.50). That is not an edge. Paper profits, if they appear later, still do not predict live returns. The software is provided without warranty; see [`LICENSE`](LICENSE). You are solely responsible for anything it does with your money.
 
 ## Current operating posture
 
