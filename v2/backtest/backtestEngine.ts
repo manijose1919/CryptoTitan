@@ -372,7 +372,9 @@ function simulateTicker(
       const tg = checkTimeGate(window[window.length - 1]?.time);
       const confidence = compositeScore / 100;
       const atrPercent = signals.atr_percent as number;
-      const tpPercent = atrPercent * V2_CONFIG.TAKE_PROFIT_ATR_MULT / 100;
+      // Paper riskGate/executor size SL/TP from STRATEGY_EXIT_CONFIGS.TREND
+      const trendExit = STRATEGY_EXIT_CONFIGS.TREND;
+      const tpPercent = atrPercent * trendExit.tpAtrMult / 100;
       const expectedReturn = tpPercent - config.feeRoundTrip;
 
       if (tg.allow
@@ -387,8 +389,8 @@ function simulateTicker(
           config.slippagePerSide,
         )!;
         const atrValue = signals.atr as number;
-        const stopLoss = entryPrice - atrValue * V2_CONFIG.STOP_LOSS_ATR_MULT;
-        const takeProfit = entryPrice + atrValue * V2_CONFIG.TAKE_PROFIT_ATR_MULT;
+        const stopLoss = entryPrice - atrValue * trendExit.slAtrMult;
+        const takeProfit = entryPrice + atrValue * trendExit.tpAtrMult;
 
         // Position sizing with risk-based cap (matches live riskGate)
         const maxPositionUsd = state.cash * V2_CONFIG.BASE_POSITION_PERCENT;

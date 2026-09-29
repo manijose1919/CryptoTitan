@@ -78,6 +78,12 @@ describe('backtestEngine exit parity with paper STRATEGY_EXIT_CONFIGS.TREND', ()
     expect(cfg.timeKillBarsResolved).toBe(STRATEGY_EXIT_CONFIGS.TREND.timeKillBarsByTf?.['1h']);
   });
 
+  it('exposes paper TREND slAtrMult/tpAtrMult for entry stop/target parity', () => {
+    const cfg = resolvePaperTrendExitConfig('4h');
+    expect(cfg.slAtrMult).toBe(STRATEGY_EXIT_CONFIGS.TREND.slAtrMult);
+    expect(cfg.tpAtrMult).toBe(STRATEGY_EXIT_CONFIGS.TREND.tpAtrMult);
+  });
+
   it('time-kills after ≥2×4h bars when |move| < minMove (paper bar×tf, not 6h wall clock)', () => {
     const trade = baseTrade();
     const config = baseConfig({ interval: '4h', intervalMinutes: 240 });
