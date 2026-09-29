@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-29 00:05 UTC — TREND exit-parity ablations (no promote) + entry SL/TP parity — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-exit-parity-ablation.ts`, `docs/reviews/2026-09-29-exit-parity-ablation.md`, `v2/backtest/backtestEngine.ts`, `v2/backtest/backtestEngine.exitParity.test.ts`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — research only; paper TREND exits unchanged.
+
+**What changed:**
+- Ran fee-aware CAD10 TREND exit matrix under STRATEGY_EXIT parity (timeKill bars, trail, SL, QK). **anyPromote=false** (best OOS PF 0.565 / −$56.73 for SL 1.2 — still fails bar).
+- Backtest TREND entry SL/TP now uses `STRATEGY_EXIT_CONFIGS.TREND.slAtrMult/tpAtrMult` (matches paper riskGate/executor) instead of parallel `V2_CONFIG` multipliers.
+
+**Why:**
+Need honest OOS under the same exit knobs paper runs. Exit mining on a PF≈0.5 OOS baseline does not justify promoting.
+
+**What to monitor / watch for:**
+- Stay paper. Do not tighten SL or lengthen time-kill without a passing bar.
+- Note: trail activate is fee-floored ≈1.56% in both paper and backtest.
+- Next research: entry/regime path, not more single-knob exit sweeps.
+- Rollback: revert this commit (runtime paper unchanged either way).
+
+---
+
 ## 2026-09-28 15:35 UTC — backtestEngine exit parity with paper STRATEGY_EXIT_CONFIGS — cursor-cloud
 
 **Commits:** this branch
