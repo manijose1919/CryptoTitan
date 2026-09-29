@@ -37,6 +37,7 @@ This codebase is a hard fork of the CryptoGod engine, retargeted for a **Canadia
 | Regime gate | `STRONG_UP` only |
 | Paper fills | 5 bps adverse slippage per side; gap-aware stop fills |
 | Fees modelled | Kraken taker 0.26% per side (0.52% round-trip) |
+| Trail arm floor | Unrealized gain ≥ 3× RT taker ≈ **1.56%** before trail activates |
 | ML gatekeeper | **Off** (training path stores exit-time features; no leakage-free OOS skill) |
 | Pairs / sniper / mean reversion | **Off** |
 | Shorts / staking / arb | **Off**; DCA remains simulation-only |
@@ -48,17 +49,19 @@ Do **not** set `V2_LIVE_CONFIRMED=yes` without an explicit human dual-confirmati
 
 Same-bar close fills were **not causal** and must not be used for promotion.
 
-Fee-aware next-bar-open replay, 5 bps/side, `STRONG_UP` only, 4h, ten CAD tickers, 0.52% RT taker:
+Fee-aware next-bar-open replay with **paper exit parity** (`STRATEGY_EXIT_CONFIGS.TREND` bar×tf timers + fee-floored trail), 5 bps/side, `STRONG_UP` only, 4h, CAD10, 0.52% RT taker, pessimistic bars — refreshed **2026-09-29**:
 
 | Window | Trades | Net | Profit factor | Notes |
 |---|---|---|---|---|
-| 90d (2026-06-11 → 2026-09-09) | 54 | **+$2.01** | **1.02** | WR 70.4%; avg win $3.00 / avg loss $7.00 — refreshed 2026-09-09 |
-| First 45d | 13 | -$4.20 | 0.80 | Non-overlapping half |
-| Second 45d | 31 | +$9.72 | 1.17 | Non-overlapping half |
+| Earlier 45d (2026-07-01 → 2026-08-15) | 13 | −$9.14 | 0.67 | WR 46% |
+| OOS 45d (2026-08-15 → 2026-09-29) | 39 | −$74.23 | **0.50** | WR 54%; avg win ~$3.5 / avg loss ~$8.2 |
+| Full 90d | 69 | −$117.35 | 0.53 | Under parity protocol |
 
-Prior window (2026-06-06 → 2026-09-04): 47 trades, -$3.63, PF 0.96. Same conclusion.
+Older near-breakeven windows (e.g. PF≈1.02 on 2026-09-09) predate exit/entry parity and must **not** be used for promotion.
 
-**Decision:** stay paper-only. Do not cherry-pick tickers from this sample. Do not reset `stats_baseline_time` until this configuration is actually deployed.
+Locked ablations under this protocol (exits 2026-09-29, entry/regime 2026-09-29) — including tighter score/confidence/volume, SL 1.2, longer time-kill, and deliberately loosening to `UP` — **all failed** the bar (OOS PF>1.1, net>0, earlier PF≥0.9). Adding `UP` made the earlier half much worse (PF 0.23).
+
+**Decision:** stay paper-only on current gates. Do not cherry-pick tickers. Do not loosen regimes. Do not reset `stats_baseline_time` until a passing configuration is actually deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
 
