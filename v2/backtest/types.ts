@@ -20,6 +20,17 @@ export interface BacktestConfig {
   // 'pessimistic' visits the adverse extreme before the favorable one (SL wins ties);
   // 'optimistic' is the legacy favorable-first ordering, kept for comparison runs.
   barSequence?: 'pessimistic' | 'optimistic';
+  /**
+   * Optional research filters on the *signal* bar (last closed bar before next-bar entry).
+   * Aimed at same-bar stop-outs (holdBars=0) from the 2026-09-30 loss autopsy.
+   * Unset = no extra filter (paper-default path).
+   */
+  entryFilters?: {
+    /** Longs: reject if close location (close-low)/(high-low) exceeds this (chase). */
+    maxSignalCloseLocation?: number;
+    /** Reject if signal-bar range / ATR exceeds this (chaotic bar). */
+    maxSignalRangeAtrMult?: number;
+  };
   seed: boolean;
 }
 

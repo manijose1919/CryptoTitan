@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-30 12:10 UTC — entry-bar quality filters (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/backtest/types.ts`, `v2/backtest/backtestEngine.ts`, `v2/backtest/entryBarQuality.test.ts`, `scripts/edge-entry-bar-quality.ts`, `docs/reviews/2026-09-30-entry-bar-quality.md`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — research-only `entryFilters` on backtest config; paper scanner/executor unchanged.
+
+**What changed:**
+- Added optional `BacktestConfig.entryFilters` + `passesEntryBarQuality` (chase closeLoc / wide range÷ATR).
+- Ablated chase, wide-bar, and MAX_ATR=2.5 combinations. Best: MAX_ATR=2.5+chase → OOS PF 0.971 / −$1.61, earlier PF 0.393 — **fails** promotion bar.
+
+**Why:**
+Loss autopsy showed holdBars=0 stop-outs; chase/chaos filters were the pre-registered structural response.
+
+**What to monitor / watch for:**
+- Do not wire entryFilters into paper without a full bar pass.
+- Wide-bar filter non-binding here; chase helps earlier half only.
+- Rollback: revert this commit.
+
+---
+
 ## 2026-09-30 00:10 UTC — loss-structure autopsy + MAX_ATR ceiling (no promote) — cursor-cloud
 
 **Commits:** this branch

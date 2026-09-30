@@ -52,6 +52,35 @@ interface ExitCheckResult {
  * desynced trail activate — so ablations disagreed with the paper soak.
  * Resolve TREND exit knobs for the backtest interval (default engine path).
  */
+/**
+ * Signal-bar quality gate for next-bar-open longs (research + optional backtest config).
+ * Rejects chase entries (close near high) and/or chaotic wide-range bars.
+ */
+export function passesEntryBarQuality(
+  signalBar: Candle,
+  atr: number,
+  filters: NonNullable<BacktestConfig['entryFilters']>,
+  side: 'long' | 'short' = 'long',
+): { ok: boolean; reason?: string } {
+  const range = signalBar.high - signalBar.low;
+  if (filters.maxSignalRangeAtrMult != null && atr > 0) {
+    const rangeAtr = range / atr;
+    if (rangeAtr > filters.maxSignalRangeAtrMult) {
+      return { ok: false, reason: `signal range/ATR ${rangeAtr.toFixed(2)} > ${filters.maxSignalRangeAtrMult}` };
+    }
+  }
+  if (filters.maxSignalCloseLocation != null && range > 0) {
+    const closeLoc = (signalBar.close - signalBar.low) / range;
+    if (side === 'long' && closeLoc > filters.maxSignalCloseLocation) {
+      return { ok: false, reason: `chase closeLoc ${closeLoc.toFixed(2)} > ${filters.maxSignalCloseLocation}` };
+    }
+    if (side === 'short' && closeLoc < (1 - filters.maxSignalCloseLocation)) {
+      return { ok: false, reason: `chase closeLoc ${closeLoc.toFixed(2)} < ${(1 - filters.maxSignalCloseLocation).toFixed(2)}` };
+    }
+  }
+  return { ok: true };
+}
+
 export function resolvePaperTrendExitConfig(interval: string): StrategyExitConfig & {
   trailActivatePercentFloored: number;
   timeKillBarsResolved: number;
@@ -382,41 +411,48 @@ function simulateTicker(
         && confidence >= V2_CONFIG.MIN_CONFIDENCE
         && expectedReturn >= V2_CONFIG.MIN_EXPECTED_RETURN
       ) {
-        const entryPrice = getNextBarEntryPrice(
-          candles,
-          bar,
-          'long',
-          config.slippagePerSide,
-        )!;
         const atrValue = signals.atr as number;
-        const stopLoss = entryPrice - atrValue * trendExit.slAtrMult;
-        const takeProfit = entryPrice + atrValue * trendExit.tpAtrMult;
-
-        // Position sizing with risk-based cap (matches live riskGate)
-        const maxPositionUsd = state.cash * V2_CONFIG.BASE_POSITION_PERCENT;
-        let positionSizeUsd = maxPositionUsd * confidence;
-        const stopDistPct = Math.abs(entryPrice - stopLoss) / entryPrice;
-        if (stopDistPct > 0 && V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT > 0) {
-          const maxRiskUsd = config.budgetPerTicker * V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT;
-          const riskCapSize = maxRiskUsd / stopDistPct;
-          if (positionSizeUsd > riskCapSize) positionSizeUsd = riskCapSize;
+        let entryQualityOk = true;
+        if (config.entryFilters) {
+          const signalBar = window[window.length - 1]!;
+          entryQualityOk = passesEntryBarQuality(signalBar, atrValue, config.entryFilters, 'long').ok;
         }
-        if (positionSizeUsd >= 10 && positionSizeUsd <= state.cash) {
-          const quantity = entryPrice > 0 ? positionSizeUsd / entryPrice : 0;
+        if (entryQualityOk) {
+          const entryPrice = getNextBarEntryPrice(
+            candles,
+            bar,
+            'long',
+            config.slippagePerSide,
+          )!;
+          const stopLoss = entryPrice - atrValue * trendExit.slAtrMult;
+          const takeProfit = entryPrice + atrValue * trendExit.tpAtrMult;
 
-          state.cash -= positionSizeUsd;
-          state.openTrades.push({
-            id: nextTradeId(ticker),
-            ticker, side: 'long', entryBar: bar + 1, entryPrice,
-            entryTime: nextCandle.time, entrySignals: signals,
-            entryRegime: regime.regime, entryConfidence: confidence, compositeScore,
-            exitBar: null, exitPrice: null, exitTime: null, exitReason: null,
-            quantity, positionSizeUsd, stopLoss, takeProfit,
-            currentStop: stopLoss, trailingActivated: false, peakPrice: entryPrice,
-            pnlGross: null, pnlNet: null, feesPaid: 0,
-            holdBars: 0, holdDurationMs: null, atrPercent,
-          });
-          trendEntry = true;
+          // Position sizing with risk-based cap (matches live riskGate)
+          const maxPositionUsd = state.cash * V2_CONFIG.BASE_POSITION_PERCENT;
+          let positionSizeUsd = maxPositionUsd * confidence;
+          const stopDistPct = Math.abs(entryPrice - stopLoss) / entryPrice;
+          if (stopDistPct > 0 && V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT > 0) {
+            const maxRiskUsd = config.budgetPerTicker * V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT;
+            const riskCapSize = maxRiskUsd / stopDistPct;
+            if (positionSizeUsd > riskCapSize) positionSizeUsd = riskCapSize;
+          }
+          if (positionSizeUsd >= 10 && positionSizeUsd <= state.cash) {
+            const quantity = entryPrice > 0 ? positionSizeUsd / entryPrice : 0;
+
+            state.cash -= positionSizeUsd;
+            state.openTrades.push({
+              id: nextTradeId(ticker),
+              ticker, side: 'long', entryBar: bar + 1, entryPrice,
+              entryTime: nextCandle.time, entrySignals: signals,
+              entryRegime: regime.regime, entryConfidence: confidence, compositeScore,
+              exitBar: null, exitPrice: null, exitTime: null, exitReason: null,
+              quantity, positionSizeUsd, stopLoss, takeProfit,
+              currentStop: stopLoss, trailingActivated: false, peakPrice: entryPrice,
+              pnlGross: null, pnlNet: null, feesPaid: 0,
+              holdBars: 0, holdDurationMs: null, atrPercent,
+            });
+            trendEntry = true;
+          }
         }
       }
     }
