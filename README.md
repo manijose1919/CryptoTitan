@@ -61,6 +61,8 @@ Older near-breakeven windows (e.g. PF≈1.02 on 2026-09-09) predate exit/entry p
 
 Locked ablations under this protocol (exits 2026-09-29, entry/regime 2026-09-29) — including tighter score/confidence/volume, SL 1.2, longer time-kill, and deliberately loosening to `UP` — **all failed** the bar (OOS PF>1.1, net>0, earlier PF≥0.9). Adding `UP` made the earlier half much worse (PF 0.23).
 
+Loss autopsy (2026-09-30): OOS drag is **stop_loss** (−$112, avgR≈−1, often holdBars=0), while trailing exits are net **positive**. ATR 2.5–4% band is the worst. Cap `MAX_ATR` at 2.5 lifts OOS to PF≈0.95 / −$3.59 but **fails** the earlier-half gate — not promoted.
+
 **Decision:** stay paper-only on current gates. Do not cherry-pick tickers. Do not loosen regimes. Do not reset `stats_baseline_time` until a passing configuration is actually deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

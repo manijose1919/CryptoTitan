@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-09-30 00:10 UTC — loss-structure autopsy + MAX_ATR ceiling (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-loss-structure.ts`, `scripts/edge-max-atr-ceiling.ts`, `docs/reviews/2026-09-30-loss-structure-and-atr-ceiling.md`, `README.md`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — research/docs only; paper `MAX_ATR_PERCENT` remains 8.
+
+**What changed:**
+- Autopsied fee-aware OOS trades: stop_loss dominates (−$112, R≈−1, often same-bar); trailing net positive; ATR 2.5–4% worst band.
+- Ablated `MAX_ATR_PERCENT` 8→2.5 / 3.0. max=2.5 is best OOS (PF 0.945 / −$3.59) but **fails** promotion (earlier PF 0.256, OOS net≤0).
+
+**Why:**
+Exit/entry threshold mining failed; need a structural diagnosis of the win/loss asymmetry before changing paper gates.
+
+**What to monitor / watch for:**
+- Do **not** promote MAX_ATR 2.5 from OOS alone.
+- Paper soak unchanged. Next: combine ceiling with a second pre-registered lever only if earlier half can be validated.
+- Rollback: revert this research/docs commit.
+
+---
+
 ## 2026-09-29 12:05 UTC — entry/regime ablations (no promote); refresh Evidence under parity — cursor-cloud
 
 **Commits:** this branch
