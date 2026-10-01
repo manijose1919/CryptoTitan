@@ -63,7 +63,7 @@ Locked ablations under this protocol (exits 2026-09-29, entry/regime 2026-09-29)
 
 Loss autopsy (2026-09-30): OOS drag is **stop_loss** (−$112, avgR≈−1, often holdBars=0), while trailing exits are net **positive**. ATR 2.5–4% band is the worst. Cap `MAX_ATR` at 2.5 lifts OOS to PF≈0.95 / −$3.59 but **fails** the earlier-half gate — not promoted.
 
-Confirm-bar research (2026-10-01): T+2 entry after a confirmation bar zeros same-bar stop-outs. Stack **MAX_ATR=2.5 + bullish_close + chase≤0.80** clears the default 45/45 bar but fails a 90/45 earlier stress (PF 0.456) and only barely holds 60/60 (earlier n=7) — **fragile; not promoted** to paper. See [`docs/reviews/2026-10-01-confirm-bar.md`](docs/reviews/2026-10-01-confirm-bar.md).
+Confirm-bar research (2026-10-01): T+2 entry after a confirmation bar. Fixed a pre-entry exit bug (`holdBars=-1`). Stack **MAX_ATR=2.5 + bullish_close + chase≤0.80** still clears 45/45 (OOS PF≈3.74) but fails robust 90/45 (earlier PF 0.668, n=8); minATR≥1.5 lifts earlier PF to 1.25 with n=6 only — **not promoted**. See [`docs/reviews/2026-10-01-confirm-robust-9045.md`](docs/reviews/2026-10-01-confirm-robust-9045.md).
 
 **Decision:** stay paper-only on current gates. Do not cherry-pick tickers. Do not loosen regimes. Do not reset `stats_baseline_time` until a passing configuration is actually deployed.
 

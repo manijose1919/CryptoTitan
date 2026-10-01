@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-01 12:30 UTC — confirm pre-entry exit fix + robust 90/45 (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/backtest/backtestEngine.ts`, `v2/backtest/types.ts`, `v2/backtest/confirmBar.test.ts`, `v2/backtest/entryBarQuality.test.ts`, `scripts/edge-confirm-robust-9045.ts`, `docs/reviews/2026-10-01-confirm-robust-9045.md`, `README.md`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — research/correctness only; paper runtime unchanged.
+
+**What changed:**
+- Fixed confirmMode/next-bar pre-entry exit marks (`holdBars=-1`).
+- Added `bullish_and_above`, `min/maxSignalAtrPercent`, `isPositionLiveOnBar`.
+- Robust 90/45 ablations (earlier n≥10 required): **all fail**. Best directional: minATR≥1.5 lifts earlier PF to 1.247 but n=6 only.
+
+**Why:**
+Autopsy of fragile confirm stack showed invalid pre-entry stops; after fix, still no robust earlier window.
+
+**What to monitor / watch for:**
+- Do not wire confirm/MAX_ATR/minATR into paper.
+- Re-runs supersede earlier confirm-bar numeric tables where holdBars&lt;0 appeared.
+- Rollback: revert this commit.
+
+---
+
 ## 2026-10-01 00:25 UTC — confirmation-bar entry (fragile bar pass; no paper promote) — cursor-cloud
 
 **Commits:** this branch
