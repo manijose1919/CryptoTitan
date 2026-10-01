@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-01 00:25 UTC — confirmation-bar entry (fragile bar pass; no paper promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/backtest/types.ts`, `v2/backtest/backtestEngine.ts`, `v2/backtest/confirmBar.test.ts`, `scripts/edge-confirm-bar.ts`, `docs/reviews/2026-10-01-confirm-bar.md`, `README.md`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — research-only `entryFilters.confirmMode`; paper scanner/executor unchanged.
+
+**What changed:**
+- Added optional `confirmMode` (`bullish_close` | `close_above_signal`): signal → confirm → enter T+2 open.
+- Ablated confirm ± MAX_ATR=2.5 ± chase. Stack **MAX_ATR=2.5 + bullish_close + closeLoc≤0.80** meets the numeric bar (OOS PF 3.783 / +$30.35, earlier PF 1.428) but earlier n=4 only — **not promoted**.
+
+**Why:**
+Pre-registered follow-up to holdBars=0 stop autopsy / entry-bar quality miss.
+
+**What to monitor / watch for:**
+- Do not wire confirmMode or MAX_ATR=2.5 into paper until a longer-window retest clears with adequate trade counts.
+- Confirm alone zeros zeroHoldSL and helps OOS but fails earlier / full90.
+- Rollback: revert this commit.
+
+---
+
 ## 2026-09-30 12:10 UTC — entry-bar quality filters (no promote) — cursor-cloud
 
 **Commits:** this branch

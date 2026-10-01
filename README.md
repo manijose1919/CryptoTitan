@@ -63,6 +63,8 @@ Locked ablations under this protocol (exits 2026-09-29, entry/regime 2026-09-29)
 
 Loss autopsy (2026-09-30): OOS drag is **stop_loss** (−$112, avgR≈−1, often holdBars=0), while trailing exits are net **positive**. ATR 2.5–4% band is the worst. Cap `MAX_ATR` at 2.5 lifts OOS to PF≈0.95 / −$3.59 but **fails** the earlier-half gate — not promoted.
 
+Confirm-bar research (2026-10-01): T+2 entry after a confirmation bar zeros same-bar stop-outs. Stack **MAX_ATR=2.5 + bullish_close + chase≤0.80** is the first combo to clear the numeric bar (OOS PF≈3.78 / +$30, earlier PF≈1.43) but earlier-half n=4 only — treated as **fragile; not promoted** to paper. See [`docs/reviews/2026-10-01-confirm-bar.md`](docs/reviews/2026-10-01-confirm-bar.md).
+
 **Decision:** stay paper-only on current gates. Do not cherry-pick tickers. Do not loosen regimes. Do not reset `stats_baseline_time` until a passing configuration is actually deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
