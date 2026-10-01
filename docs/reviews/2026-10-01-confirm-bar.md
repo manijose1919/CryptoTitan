@@ -34,7 +34,19 @@ Does waiting one confirmation bar after the signal (enter at T+2 open), optional
 - Full90 for the stacked pass: n=20, WR 75%, PF 1.845, net +$24.84, zeroHoldSL=0.
 
 ## Decision
-**Do not promote to paper** yet. First numeric bar clear, but earlier-half sample is too small. Next pre-registered check: longer-window stress (e.g. 90d earlier / 45d OOS, or 120d 60/60) on the same stack before any scanner/executor wiring. Paper `MAX_ATR_PERCENT` stays 8; no confirmMode in live path.
+**Do not promote to paper** yet. First numeric bar clear, but earlier-half sample is too small. Longer-window stress (below) shows the pass is **window-dependent**. Paper `MAX_ATR_PERCENT` stays 8; no confirmMode in live path.
+
+## Longer-window stress (same candidate)
+
+Runner: `scripts/edge-confirm-bar-longwindow.ts`
+
+| Split | Earlier | OOS | Pass |
+|---|---|---|---|
+| 90d earlier / 45d OOS | n=8 PF=0.456 net=−$15.73 | n=15 PF=3.783 net=+$30.35 | **no** |
+| 60d / 60d | n=7 PF=0.918 net=−$1.18 | n=15 PF=3.759 net=+$30.55 | yes (barely) |
+| baseline 90/45 MAX_ATR=8 | n≈16-class drag | OOS PF=0.484 net=−$76.29 | no |
+
+The 90/45 earlier half fails hard (PF 0.456). The 60/60 earlier PF 0.918 clears ≥0.9 with n=7 only. **Pass is not robust across window choice → still no paper promote.**
 
 ## Paper soak (same cycle)
 - `:3137` paper, stale=false, open 0, trades 4, pnl −$52.60, no STRONG_UP passes, no new fills.

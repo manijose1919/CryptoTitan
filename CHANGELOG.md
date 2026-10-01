@@ -61,7 +61,7 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 Pre-registered follow-up to holdBars=0 stop autopsy / entry-bar quality miss.
 
 **What to monitor / watch for:**
-- Do not wire confirmMode or MAX_ATR=2.5 into paper until a longer-window retest clears with adequate trade counts.
+- Longer-window stress (`edge-confirm-bar-longwindow.ts`): 90/45 **fails** earlier PF=0.456; 60/60 barely passes (earlier PF=0.918, n=7). Still **do not** wire into paper.
 - Confirm alone zeros zeroHoldSL and helps OOS but fails earlier / full90.
 - Rollback: revert this commit.
 
