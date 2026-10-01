@@ -30,6 +30,13 @@ export interface BacktestConfig {
     maxSignalCloseLocation?: number;
     /** Reject if signal-bar range / ATR exceeds this (chaotic bar). */
     maxSignalRangeAtrMult?: number;
+    /**
+     * If set, wait one confirmation bar after the signal, then enter at the
+     * following open (signal → confirm → entry). Research-only lag vs paper.
+     * - bullish_close: confirm close > confirm open
+     * - close_above_signal: confirm close > signal close
+     */
+    confirmMode?: 'bullish_close' | 'close_above_signal';
   };
   seed: boolean;
 }

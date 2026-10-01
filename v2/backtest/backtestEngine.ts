@@ -81,6 +81,34 @@ export function passesEntryBarQuality(
   return { ok: true };
 }
 
+/** Confirmation-bar gate (research). Signal on bar T; confirm on T+1; enter T+2 open. */
+export function passesConfirmBar(
+  signalBar: Candle,
+  confirmBar: Candle,
+  mode: 'bullish_close' | 'close_above_signal',
+  side: 'long' | 'short' = 'long',
+): { ok: boolean; reason?: string } {
+  if (mode === 'bullish_close') {
+    const bullish = confirmBar.close > confirmBar.open;
+    const bearish = confirmBar.close < confirmBar.open;
+    if (side === 'long' && !bullish) {
+      return { ok: false, reason: 'confirm bar not bullish' };
+    }
+    if (side === 'short' && !bearish) {
+      return { ok: false, reason: 'confirm bar not bearish' };
+    }
+    return { ok: true };
+  }
+  // close_above_signal
+  if (side === 'long' && !(confirmBar.close > signalBar.close)) {
+    return { ok: false, reason: 'confirm close ≤ signal close' };
+  }
+  if (side === 'short' && !(confirmBar.close < signalBar.close)) {
+    return { ok: false, reason: 'confirm close ≥ signal close' };
+  }
+  return { ok: true };
+}
+
 export function resolvePaperTrendExitConfig(interval: string): StrategyExitConfig & {
   trailActivatePercentFloored: number;
   timeKillBarsResolved: number;
@@ -418,40 +446,61 @@ function simulateTicker(
           entryQualityOk = passesEntryBarQuality(signalBar, atrValue, config.entryFilters, 'long').ok;
         }
         if (entryQualityOk) {
-          const entryPrice = getNextBarEntryPrice(
-            candles,
-            bar,
-            'long',
-            config.slippagePerSide,
-          )!;
-          const stopLoss = entryPrice - atrValue * trendExit.slAtrMult;
-          const takeProfit = entryPrice + atrValue * trendExit.tpAtrMult;
-
-          // Position sizing with risk-based cap (matches live riskGate)
-          const maxPositionUsd = state.cash * V2_CONFIG.BASE_POSITION_PERCENT;
-          let positionSizeUsd = maxPositionUsd * confidence;
-          const stopDistPct = Math.abs(entryPrice - stopLoss) / entryPrice;
-          if (stopDistPct > 0 && V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT > 0) {
-            const maxRiskUsd = config.budgetPerTicker * V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT;
-            const riskCapSize = maxRiskUsd / stopDistPct;
-            if (positionSizeUsd > riskCapSize) positionSizeUsd = riskCapSize;
+          const confirmMode = config.entryFilters?.confirmMode;
+          const signalBar = window[window.length - 1]!;
+          let entrySignalIndex = bar; // getNextBarEntryPrice uses signalIndex+1 open
+          let entryCandle = nextCandle;
+          let confirmOk = true;
+          if (confirmMode) {
+            const confirmBar = candles[bar + 1];
+            const entryBarCandle = candles[bar + 2];
+            if (!confirmBar || !entryBarCandle) {
+              confirmOk = false;
+            } else {
+              confirmOk = passesConfirmBar(signalBar, confirmBar, confirmMode, 'long').ok;
+              entrySignalIndex = bar + 1;
+              entryCandle = entryBarCandle;
+            }
           }
-          if (positionSizeUsd >= 10 && positionSizeUsd <= state.cash) {
-            const quantity = entryPrice > 0 ? positionSizeUsd / entryPrice : 0;
+          if (confirmOk) {
+            const entryPrice = getNextBarEntryPrice(
+              candles,
+              entrySignalIndex,
+              'long',
+              config.slippagePerSide,
+            );
+            if (entryPrice != null) {
+              const stopLoss = entryPrice - atrValue * trendExit.slAtrMult;
+              const takeProfit = entryPrice + atrValue * trendExit.tpAtrMult;
 
-            state.cash -= positionSizeUsd;
-            state.openTrades.push({
-              id: nextTradeId(ticker),
-              ticker, side: 'long', entryBar: bar + 1, entryPrice,
-              entryTime: nextCandle.time, entrySignals: signals,
-              entryRegime: regime.regime, entryConfidence: confidence, compositeScore,
-              exitBar: null, exitPrice: null, exitTime: null, exitReason: null,
-              quantity, positionSizeUsd, stopLoss, takeProfit,
-              currentStop: stopLoss, trailingActivated: false, peakPrice: entryPrice,
-              pnlGross: null, pnlNet: null, feesPaid: 0,
-              holdBars: 0, holdDurationMs: null, atrPercent,
-            });
-            trendEntry = true;
+              // Position sizing with risk-based cap (matches live riskGate)
+              const maxPositionUsd = state.cash * V2_CONFIG.BASE_POSITION_PERCENT;
+              let positionSizeUsd = maxPositionUsd * confidence;
+              const stopDistPct = Math.abs(entryPrice - stopLoss) / entryPrice;
+              if (stopDistPct > 0 && V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT > 0) {
+                const maxRiskUsd = config.budgetPerTicker * V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT;
+                const riskCapSize = maxRiskUsd / stopDistPct;
+                if (positionSizeUsd > riskCapSize) positionSizeUsd = riskCapSize;
+              }
+              if (positionSizeUsd >= 10 && positionSizeUsd <= state.cash) {
+                const quantity = entryPrice > 0 ? positionSizeUsd / entryPrice : 0;
+                const entryBarIndex = entrySignalIndex + 1;
+
+                state.cash -= positionSizeUsd;
+                state.openTrades.push({
+                  id: nextTradeId(ticker),
+                  ticker, side: 'long', entryBar: entryBarIndex, entryPrice,
+                  entryTime: entryCandle.time, entrySignals: signals,
+                  entryRegime: regime.regime, entryConfidence: confidence, compositeScore,
+                  exitBar: null, exitPrice: null, exitTime: null, exitReason: null,
+                  quantity, positionSizeUsd, stopLoss, takeProfit,
+                  currentStop: stopLoss, trailingActivated: false, peakPrice: entryPrice,
+                  pnlGross: null, pnlNet: null, feesPaid: 0,
+                  holdBars: 0, holdDurationMs: null, atrPercent,
+                });
+                trendEntry = true;
+              }
+            }
           }
         }
       }
