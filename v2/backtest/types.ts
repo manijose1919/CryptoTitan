@@ -35,8 +35,13 @@ export interface BacktestConfig {
      * following open (signal → confirm → entry). Research-only lag vs paper.
      * - bullish_close: confirm close > confirm open
      * - close_above_signal: confirm close > signal close
+     * - bullish_and_above: both of the above
      */
-    confirmMode?: 'bullish_close' | 'close_above_signal';
+    confirmMode?: 'bullish_close' | 'close_above_signal' | 'bullish_and_above';
+    /** Reject if signal atr_percent is below this (dead/chop filter). */
+    minSignalAtrPercent?: number;
+    /** Reject if signal atr_percent is above this (local cap; research alternative to mutating V2_CONFIG). */
+    maxSignalAtrPercent?: number;
   };
   seed: boolean;
 }

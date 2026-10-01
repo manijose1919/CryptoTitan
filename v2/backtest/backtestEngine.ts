@@ -85,10 +85,13 @@ export function passesEntryBarQuality(
 export function passesConfirmBar(
   signalBar: Candle,
   confirmBar: Candle,
-  mode: 'bullish_close' | 'close_above_signal',
+  mode: 'bullish_close' | 'close_above_signal' | 'bullish_and_above',
   side: 'long' | 'short' = 'long',
 ): { ok: boolean; reason?: string } {
-  if (mode === 'bullish_close') {
+  const needBullish = mode === 'bullish_close' || mode === 'bullish_and_above';
+  const needAbove = mode === 'close_above_signal' || mode === 'bullish_and_above';
+
+  if (needBullish) {
     const bullish = confirmBar.close > confirmBar.open;
     const bearish = confirmBar.close < confirmBar.open;
     if (side === 'long' && !bullish) {
@@ -97,14 +100,28 @@ export function passesConfirmBar(
     if (side === 'short' && !bearish) {
       return { ok: false, reason: 'confirm bar not bearish' };
     }
-    return { ok: true };
   }
-  // close_above_signal
-  if (side === 'long' && !(confirmBar.close > signalBar.close)) {
-    return { ok: false, reason: 'confirm close ≤ signal close' };
+  if (needAbove) {
+    if (side === 'long' && !(confirmBar.close > signalBar.close)) {
+      return { ok: false, reason: 'confirm close ≤ signal close' };
+    }
+    if (side === 'short' && !(confirmBar.close < signalBar.close)) {
+      return { ok: false, reason: 'confirm close ≥ signal close' };
+    }
   }
-  if (side === 'short' && !(confirmBar.close < signalBar.close)) {
-    return { ok: false, reason: 'confirm close ≥ signal close' };
+  return { ok: true };
+}
+
+/** Optional ATR%-band gate on the signal (research). */
+export function passesSignalAtrBand(
+  atrPercent: number,
+  filters: NonNullable<BacktestConfig['entryFilters']>,
+): { ok: boolean; reason?: string } {
+  if (filters.minSignalAtrPercent != null && atrPercent < filters.minSignalAtrPercent) {
+    return { ok: false, reason: `atr% ${atrPercent.toFixed(2)} < min ${filters.minSignalAtrPercent}` };
+  }
+  if (filters.maxSignalAtrPercent != null && atrPercent > filters.maxSignalAtrPercent) {
+    return { ok: false, reason: `atr% ${atrPercent.toFixed(2)} > max ${filters.maxSignalAtrPercent}` };
   }
   return { ok: true };
 }
@@ -443,7 +460,9 @@ function simulateTicker(
         let entryQualityOk = true;
         if (config.entryFilters) {
           const signalBar = window[window.length - 1]!;
-          entryQualityOk = passesEntryBarQuality(signalBar, atrValue, config.entryFilters, 'long').ok;
+          entryQualityOk =
+            passesEntryBarQuality(signalBar, atrValue, config.entryFilters, 'long').ok
+            && passesSignalAtrBand(atrPercent, config.entryFilters).ok;
         }
         if (entryQualityOk) {
           const confirmMode = config.entryFilters?.confirmMode;

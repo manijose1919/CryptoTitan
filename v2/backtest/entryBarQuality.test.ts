@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { passesEntryBarQuality } from './backtestEngine.ts';
+import { passesEntryBarQuality, passesSignalAtrBand } from './backtestEngine.ts';
 import type { Candle } from '../pipeline/types.ts';
 
 function bar( partial: Partial<Candle> & Pick<Candle, 'open' | 'high' | 'low' | 'close'>): Candle {
@@ -25,5 +25,23 @@ describe('passesEntryBarQuality', () => {
     const r = passesEntryBarQuality(signal, 4, { maxSignalRangeAtrMult: 2.0 }, 'long');
     expect(r.ok).toBe(false);
     expect(r.reason).toMatch(/range\/ATR/);
+  });
+});
+
+describe('passesSignalAtrBand', () => {
+  it('rejects below min atr%', () => {
+    const r = passesSignalAtrBand(1.2, { minSignalAtrPercent: 1.5 });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/min/);
+  });
+
+  it('rejects above max atr%', () => {
+    const r = passesSignalAtrBand(3.1, { maxSignalAtrPercent: 2.5 });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/max/);
+  });
+
+  it('allows in-band atr%', () => {
+    expect(passesSignalAtrBand(2.0, { minSignalAtrPercent: 1.5, maxSignalAtrPercent: 2.5 }).ok).toBe(true);
   });
 });

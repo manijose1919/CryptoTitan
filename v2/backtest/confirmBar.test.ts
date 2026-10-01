@@ -39,4 +39,13 @@ describe('passesConfirmBar', () => {
     const green = bar({ open: 100, high: 106, low: 99, close: 105 });
     expect(passesConfirmBar(signal, green, 'bullish_close', 'short').ok).toBe(false);
   });
+
+  it('bullish_and_above requires both green close and close > signal', () => {
+    const both = bar({ open: 104, high: 107, low: 103, close: 106 });
+    expect(passesConfirmBar(signal, both, 'bullish_and_above', 'long').ok).toBe(true);
+    const greenButBelow = bar({ open: 100, high: 103, low: 99, close: 102 });
+    expect(passesConfirmBar(signal, greenButBelow, 'bullish_and_above', 'long').ok).toBe(false);
+    const aboveButRed = bar({ open: 106, high: 107, low: 104, close: 105 });
+    expect(passesConfirmBar(signal, aboveButRed, 'bullish_and_above', 'long').ok).toBe(false);
+  });
 });
