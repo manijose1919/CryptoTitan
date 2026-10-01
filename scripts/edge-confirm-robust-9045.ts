@@ -87,6 +87,10 @@ function summarize(result: BacktestResult) {
   const zeroHoldStops = result.trades.filter(
     (t) => t.exitReason === 'stop_loss' && t.holdBars === 0,
   ).length;
+  const negativeHold = result.trades.filter((t) => t.holdBars < 0).length;
+  if (negativeHold > 0) {
+    throw new Error(`Invariant violated: ${negativeHold} trades with holdBars<0`);
+  }
   return {
     trades: s.totalTrades,
     winRate: Number(s.winRate.toFixed(4)),

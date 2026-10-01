@@ -126,6 +126,11 @@ export function passesSignalAtrBand(
   return { ok: true };
 }
 
+/** True once the fill bar is reached (guards pre-entry exit marks). */
+export function isPositionLiveOnBar(barIndex: number, entryBar: number): boolean {
+  return barIndex >= entryBar;
+}
+
 export function resolvePaperTrendExitConfig(interval: string): StrategyExitConfig & {
   trailActivatePercentFloored: number;
   timeKillBarsResolved: number;
@@ -348,6 +353,14 @@ function simulateTicker(
     const stillOpen: BacktestTrade[] = [];
 
     for (const trade of state.openTrades) {
+      // confirmMode (and next-bar) may push a trade before its entryBar.
+      // Do not mark-to-exit on bars that precede the fill — that produced
+      // holdBars=-1 stop-outs in the 2026-10-01 confirm-bar research.
+      if (!isPositionLiveOnBar(bar, trade.entryBar)) {
+        stillOpen.push(trade);
+        continue;
+      }
+
       const exitResult = checkExitOnBar(trade, currentCandle, bar, config);
 
       // Update trade state
@@ -573,7 +586,13 @@ function simulateTicker(
 
   // Force-close any remaining open trades at last bar close
   const lastCandle = candles[candles.length - 1];
+  const lastBar = candles.length - 1;
   for (const trade of state.openTrades) {
+    // Never filled (entryBar past end of series) — refund reserved cash, drop.
+    if (lastBar < trade.entryBar) {
+      state.cash += trade.positionSizeUsd;
+      continue;
+    }
     const exitPrice = applyPaperSlippage(
       lastCandle.close,
       trade.side,
@@ -585,9 +604,9 @@ function simulateTicker(
       : (exitPrice - trade.entryPrice) * trade.quantity;
     const feesPaid = trade.positionSizeUsd * config.feeRoundTrip;
     const pnlNet = pnlGross - feesPaid;
-    const holdBars = candles.length - 1 - trade.entryBar;
+    const holdBars = lastBar - trade.entryBar;
 
-    trade.exitBar = candles.length - 1;
+    trade.exitBar = lastBar;
     trade.exitPrice = exitPrice;
     trade.exitTime = lastCandle.time;
     trade.exitReason = EXIT_REASON.time_kill;

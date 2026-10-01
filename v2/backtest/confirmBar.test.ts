@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { passesConfirmBar } from './backtestEngine.ts';
+import { isPositionLiveOnBar, passesConfirmBar } from './backtestEngine.ts';
 import type { Candle } from '../pipeline/types.ts';
 
 function bar(partial: Partial<Candle> & Pick<Candle, 'open' | 'high' | 'low' | 'close'>): Candle {
@@ -47,5 +47,13 @@ describe('passesConfirmBar', () => {
     expect(passesConfirmBar(signal, greenButBelow, 'bullish_and_above', 'long').ok).toBe(false);
     const aboveButRed = bar({ open: 106, high: 107, low: 104, close: 105 });
     expect(passesConfirmBar(signal, aboveButRed, 'bullish_and_above', 'long').ok).toBe(false);
+  });
+});
+
+describe('isPositionLiveOnBar', () => {
+  it('is false before the entry bar and true from entry onward', () => {
+    expect(isPositionLiveOnBar(10, 12)).toBe(false);
+    expect(isPositionLiveOnBar(12, 12)).toBe(true);
+    expect(isPositionLiveOnBar(13, 12)).toBe(true);
   });
 });
