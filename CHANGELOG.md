@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-02 00:20 UTC — confirm-stack exit ablations + 1h probe blocked (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-confirm-exit-9045.ts`, `scripts/edge-confirm-1h-9045.ts`, `docs/reviews/2026-10-02-confirm-exit-9045.md`, `README.md`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — research only; paper exits unchanged.
+
+**What changed:**
+- Ablated time-kill / quick-kill / wider-SL under corrected confirm+MAX_ATR+chase on robust 90/45 — **all fail**. Longer time-kill hurt earlier; OOS stays trailing-dominated.
+- 1h alternate-TF probe **blocked** (CryptoCompare 401; Kraken ~30d 1h cap → earlier90 empty).
+
+**Why:**
+Prior autopsy pointed at time_kill fee-bleed on earlier90; exit knobs were the pre-registered response.
+
+**What to monitor / watch for:**
+- Do not lengthen paper time-kill or widen SL from this cycle.
+- 1h research needs a longer candle source before re-attempt.
+- Rollback: revert this commit.
+
+---
+
 ## 2026-10-01 12:30 UTC — confirm pre-entry exit fix + robust 90/45 (no promote) — cursor-cloud
 
 **Commits:** this branch

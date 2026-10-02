@@ -8,6 +8,11 @@
  * Protocol: 90d earlier / 45d OOS, CAD10, STRONG_UP, 1h, 0.52% RT, 5bps,
  * pessimistic. Bar: OOS PF>1.1 & net>0 & earlier PF≥0.9 & earlier n≥10.
  *
+ * Data note (2026-10-02): CryptoCompare histohour is 401 in this env;
+ * Kraken public OHLC only returns ~720 1h bars (~30d). A true 90d earlier
+ * window is unavailable without a CC key — script aborts if earlier n=0
+ * after the first ablation's earlier half.
+ *
  * Usage:
  *   DATA_DIR=/tmp/cryptotitan-edge-research \
  *     node --experimental-strip-types scripts/edge-confirm-1h-9045.ts
@@ -112,6 +117,19 @@ async function main(): Promise<void> {
   const rows = [];
   for (const ab of ABLATIONS) {
     const earlier = await runWindow(`${ab.id}/earlier90`, 90, endEarlier90, ab);
+    if (ab.id === 'baseline_1h' && earlier.trades === 0) {
+      const blocked = {
+        generatedAt: new Date().toISOString(),
+        status: 'blocked_insufficient_history',
+        reason:
+          'CryptoCompare 401; Kraken public OHLC ~720 1h bars (~30d). Cannot form 90d earlier window.',
+        anyPromote: false,
+      };
+      writeFileSync('/opt/cursor/artifacts/edge-confirm-1h-9045.json', JSON.stringify(blocked, null, 2));
+      writeFileSync('/cursor/stores/self/artifacts/edge-confirm-1h-9045.json', JSON.stringify(blocked, null, 2));
+      console.log('\nBLOCKED: insufficient 1h history for 90d earlier — wrote artifact and exiting');
+      return;
+    }
     const oos = await runWindow(`${ab.id}/oos45`, 45, endRecent, ab);
     const row = {
       id: ab.id,
@@ -128,6 +146,7 @@ async function main(): Promise<void> {
 
   const out = {
     generatedAt: new Date().toISOString(),
+    status: 'ok',
     hypothesis: '1h confirm stack reaches earlier n≥10 with promotion-bar metrics.',
     protocol: {
       interval: '1h',
