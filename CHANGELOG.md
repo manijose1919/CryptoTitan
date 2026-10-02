@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-02 12:30 UTC — UP+confirm+minATR clears robust 90/45 (wire pending) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-up-confirm-9045.ts`, `scripts/edge-up-confirm-promote-stress.ts`, `docs/reviews/2026-10-02-up-confirm-promote-candidate.md`, `README.md`, `CHANGELOG.md`
+**Stats baseline reset:** **no** — research only; paper still STRONG_UP-only / MAX_ATR=8 / no confirmMode.
+
+**What changed:**
+- Paper soak dark: all HTF=UP, none STRONG_UP.
+- Ablated UP under confirm stack. **UP+STRONG_UP + MAX_ATR=2.5 + bullish_close + chase + minATR≥1.5** clears robust 90/45 (earlier n=20 PF1.20 / OOS PF1.95) and 60/60. Bare allow_UP still fails.
+- Stress: 45/45 earlier n=4 (all wins) fails n≥10 only; full90 PF1.62 / +$33.
+
+**Why:**
+Seek a path that can trade in the current all-UP regime without repeating bare allow_UP failure.
+
+**What to monitor / watch for:**
+- Do **not** enable UP alone. Promote only as the full package including pending-confirm in the paper engine (next cycle).
+- Rollback: N/A (no runtime change).
+
+---
+
 ## 2026-10-02 00:20 UTC — confirm-stack exit ablations + 1h probe blocked (no promote) — cursor-cloud
 
 **Commits:** this branch

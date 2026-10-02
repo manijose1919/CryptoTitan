@@ -63,9 +63,9 @@ Locked ablations under this protocol (exits 2026-09-29, entry/regime 2026-09-29)
 
 Loss autopsy (2026-09-30): OOS drag is **stop_loss** (−$112, avgR≈−1, often holdBars=0), while trailing exits are net **positive**. ATR 2.5–4% band is the worst. Cap `MAX_ATR` at 2.5 lifts OOS to PF≈0.95 / −$3.59 but **fails** the earlier-half gate — not promoted.
 
-Confirm-bar research (2026-10-01/02): T+2 entry after a confirmation bar. Fixed a pre-entry exit bug (`holdBars=-1`). Stack **MAX_ATR=2.5 + bullish_close + chase≤0.80** is OOS-strong (PF≈3.74, all trailing) but fails robust 90/45 (earlier n≤8). Exit knobs under that stack (longer time-kill, no quick-kill, wider SL) **all fail**; 1h alternate-TF probe blocked by ~30d Kraken OHLC cap. **Not promoted.** See [`docs/reviews/2026-10-02-confirm-exit-9045.md`](docs/reviews/2026-10-02-confirm-exit-9045.md).
+Confirm-bar research (2026-10-01/02): T+2 entry after a confirmation bar. Fixed a pre-entry exit bug (`holdBars=-1`). STRONG_UP-only confirm stack is OOS-strong but earlier-starved. **Promote candidate (2026-10-02):** allow UP **with** MAX_ATR=2.5 + bullish_close + chase + minATR≥1.5 clears robust 90/45 (earlier n=20 PF≈1.20 / OOS PF≈1.95) and 60/60; bare allow_UP still fails. Paper **not yet wired** (needs pending-confirm in the live engine). See [`docs/reviews/2026-10-02-up-confirm-promote-candidate.md`](docs/reviews/2026-10-02-up-confirm-promote-candidate.md).
 
-**Decision:** stay paper-only on current gates. Do not cherry-pick tickers. Do not loosen regimes. Do not reset `stats_baseline_time` until a passing configuration is actually deployed.
+**Decision:** stay paper-only on current gates until the full candidate package is implemented. Do not cherry-pick tickers. Do not enable UP alone. Do not reset `stats_baseline_time` until a passing configuration is actually deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
 
