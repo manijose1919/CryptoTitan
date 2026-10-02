@@ -62,7 +62,8 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 Seek a path that can trade in the current all-UP regime without repeating bare allow_UP failure.
 
 **What to monitor / watch for:**
-- Do **not** enable UP alone. Promote only as the full package including pending-confirm in the paper engine (next cycle).
+- Do **not** enable UP alone. Promote only as the full package including pending-confirm in the paper engine.
+- Shipped `v2/pipeline/pendingConfirmEntry.ts` state machine (+tests); tradeEngine/config wire is next cycle.
 - Rollback: N/A (no runtime change).
 
 ---

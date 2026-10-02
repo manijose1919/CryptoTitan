@@ -43,6 +43,8 @@ Can allowing UP **only when paired with** confirm+MAX_ATR+chase(+minATR) clear r
 4. `maxSignalCloseLocation: 0.8` + `minSignalAtrPercent: 1.5`
 
 ## Decision
-**Do not wire paper this cycle.** Robust 90/45 + 60/60 clear, but live confirm requires pending-entry state across 4h bars — shipping UP without confirm would match failing ablations.
+**Do not wire paper runtime config this cycle.** Robust 90/45 + 60/60 clear, but shipping UP without confirm would match failing ablations.
 
-**Next cycle:** implement paper pending-confirm + chase/minATR gates + MAX_ATR=2.5 + allow UP as one changelog’d package, with unit tests for pending-signal lifecycle; then soak on `:3137`.
+**Shipped toward wire:** pure state machine `v2/pipeline/pendingConfirmEntry.ts` (+ tests) matching T→confirm→enter semantics and chase/minATR gates. Not yet hooked into `tradeEngine` / `V2_CONFIG`.
+
+**Next cycle:** wire pending-confirm into paper `tradeEngine` + set `ALLOWED_REGIMES+=UP`, `MAX_ATR_PERCENT=2.5`, `MIN_ATR_PERCENT=1.5` as one changelog’d package; update `cadUniverse.test`; restart `:3137` soak; reset stats baseline when deployed.
