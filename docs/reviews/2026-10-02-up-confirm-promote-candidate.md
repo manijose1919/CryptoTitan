@@ -42,9 +42,12 @@ Can allowing UP **only when paired with** confirm+MAX_ATR+chase(+minATR) clear r
 3. `confirmMode: bullish_close` (T+2 entry — needs pending-signal plumbing in paper engine)
 4. `maxSignalCloseLocation: 0.8` + `minSignalAtrPercent: 1.5`
 
-## Decision
-**Do not wire paper runtime config this cycle.** Robust 90/45 + 60/60 clear, but shipping UP without confirm would match failing ablations.
+## Decision / deploy (2026-10-03)
+**Wired into paper runtime** as one package:
+- `ALLOWED_REGIMES=['STRONG_UP','UP']`, `MAX_ATR_PERCENT=2.5`, `MIN_ATR_PERCENT=1.5`
+- `ENTRY_CONFIRM_ENABLED` + bullish_close + chase≤0.80
+- `tradeEngine` pending-confirm for TREND (`pendingConfirmEntry` state machine)
 
-**Shipped toward wire:** pure state machine `v2/pipeline/pendingConfirmEntry.ts` (+ tests) matching T→confirm→enter semantics and chase/minATR gates. Not yet hooked into `tradeEngine` / `V2_CONFIG`.
+Stats baseline reset on `:3137` at deploy. Monitor `CONFIRM *` log lines and new fills.
 
-**Next cycle:** wire pending-confirm into paper `tradeEngine` + set `ALLOWED_REGIMES+=UP`, `MAX_ATR_PERCENT=2.5`, `MIN_ATR_PERCENT=1.5` as one changelog’d package; update `cadUniverse.test`; restart `:3137` soak; reset stats baseline when deployed.
+**Rollback:** STRONG_UP-only, MAX_ATR=8, MIN_ATR=1.0, `ENTRY_CONFIRM_ENABLED=false`.

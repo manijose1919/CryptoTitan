@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-03 00:20 UTC — wire UP+confirm promote package into paper runtime — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/config.ts`, `v2/engine/tradeEngine.ts`, `v2/engine/cadUniverse.test.ts`, `v2/engine/promotePackage.test.ts`, `v2/pipeline/pendingConfirmEntry.ts`, docs/CHANGELOG/README
+**Stats baseline reset:** **yes** on `:3137` paper DB after restart — material entry/regime change.
+
+**What changed:**
+- Runtime: `ALLOWED_REGIMES=['STRONG_UP','UP']`, `MAX_ATR_PERCENT=2.5`, `MIN_ATR_PERCENT=1.5`, `ENTRY_CONFIRM_ENABLED` with bullish_close + chase≤0.80.
+- `tradeEngine` stashes TREND signals through pending confirm (T→confirm→enter); advances/fills even when no new signals that loop.
+- Do not disable `ENTRY_CONFIRM_ENABLED` while UP remains allowed.
+
+**Why:**
+Fee-aware robust 90/45 + 60/60 clear for this package (2026-10-02). Paper was dark under STRONG_UP-only while HTF sat in UP.
+
+**What to monitor / watch for:**
+- Logs: `CONFIRM pending`, `CONFIRM armed`, `CONFIRM entering`, `CONFIRM drop`, `CONFIRM reject`.
+- New paper fills should show TREND entries after a bullish confirm bar; zeroHoldSL should stay rare.
+- Rollback: revert config to STRONG_UP-only / MAX_ATR=8 / MIN_ATR=1.0 / ENTRY_CONFIRM_ENABLED=false and restart.
+
+---
+
 ## 2026-10-02 12:30 UTC — UP+confirm+minATR clears robust 90/45 (wire pending) — cursor-cloud
 
 **Commits:** this branch
