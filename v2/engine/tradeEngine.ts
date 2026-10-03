@@ -17,6 +17,15 @@ import { checkExits } from '../pipeline/exitManager.ts';
 import { fetchAllCandles, getRequiredTimeframes } from './candleManager.ts';
 import { runAllStrategies } from './strategyRunner.ts';
 import type { StrategySignal } from './strategyRunner.ts';
+import {
+  PROMOTE_ENTRY_QUALITY,
+  advancePendingOnClosedBar,
+  createPendingFromSignal,
+  isEntryBarOpen,
+  type EntryQualityConfig,
+  type PendingConfirmEntry,
+} from '../pipeline/pendingConfirmEntry.ts';
+import type { RiskResult } from '../pipeline/types.ts';
 
 // Attribution imports
 import {
@@ -41,6 +50,28 @@ let isRunning = false;
 let loopInProgress = false; // Prevents concurrent runLoop() calls
 let exchange: ExchangeAdapter | null = null;
 let budget = 0;
+
+/** Pending TREND confirm entries (signal → confirm → enter). Key: ticker. */
+interface StashedPending {
+  pending: PendingConfirmEntry;
+  signal: StrategySignal;
+  lastSeenClosedBarTime: number;
+}
+const _pendingConfirms = new Map<string, StashedPending>();
+
+function entryQualityConfig(): EntryQualityConfig {
+  return {
+    confirmMode: (V2_CONFIG as { ENTRY_CONFIRM_MODE?: EntryQualityConfig['confirmMode'] }).ENTRY_CONFIRM_MODE
+      ?? PROMOTE_ENTRY_QUALITY.confirmMode,
+    maxSignalCloseLocation: (V2_CONFIG as { MAX_SIGNAL_CLOSE_LOCATION?: number }).MAX_SIGNAL_CLOSE_LOCATION
+      ?? PROMOTE_ENTRY_QUALITY.maxSignalCloseLocation,
+    minSignalAtrPercent: V2_CONFIG.MIN_ATR_PERCENT,
+  };
+}
+
+function confirmEnabled(): boolean {
+  return !!(V2_CONFIG as { ENTRY_CONFIRM_ENABLED?: boolean }).ENTRY_CONFIRM_ENABLED;
+}
 
 // 2026-05-12: decision_log heartbeat dedup.
 // checkOpenExits is called up to 3x per loop iteration. Without dedup we'd
@@ -265,6 +296,10 @@ async function runLoop(): Promise<void> {
       if (stats.loopCount % 5 === 1) {
         console.log(`[V2] Loop #${stats.loopCount}: no signals from any strategy across ${requiredTfs.length} timeframes`);
       }
+      // Still advance/fill pending confirms — they mature on closed bars without new signals.
+      if (confirmEnabled() && _pendingConfirms.size > 0) {
+        await processPendingConfirmEntries(allCandles, tickerCandles, false);
+      }
       stats.lastLoopTime = Date.now() - loopStart;
       await checkOpenExits();
       return;
@@ -358,91 +393,33 @@ async function runLoop(): Promise<void> {
     }
 
     // ==============================
-    // Stage 5: Execute best approved trade
+    // Stage 5: Pending confirm advance + execute / stash TREND signals
     // ==============================
-    if (mlFiltered.length > 0) {
+    let executedThisLoop = false;
+
+    if (confirmEnabled()) {
+      executedThisLoop = await processPendingConfirmEntries(allCandles, tickerCandles, abOff);
+    }
+
+    if (!executedThisLoop && mlFiltered.length > 0) {
       // Take the best (first, since signals are sorted by score)
       const bestRisk = mlFiltered[0];
       const bestSignal = passedSignals.find((s) => s.ticker === bestRisk.ticker && (s.side ?? 'long') === (bestRisk.side ?? 'long'));
 
       if (bestSignal) {
-        console.log(`[V2] Loop #${stats.loopCount}: executing ${bestSignal.ticker} score=${bestSignal.compositeScore.toFixed(1)} size=$${bestRisk.positionSizeUsd.toFixed(2)}`);
+        const strategy = (bestSignal as StrategySignal)._strategy ?? 'TREND';
+        const useConfirm = confirmEnabled() && strategy === 'TREND';
 
-        const { trade, decision } = await executeTrade(
-          bestSignal,
-          bestRisk,
-          exchange,
-          [], // previous decisions
-        );
-
-        if (trade) {
-          // H4: insertTrade can throw (DB locked, schema drift, disk full).
-          // In live mode, by this point the maker buy has filled on-exchange
-          // AND a native SL is registered. If the DB write fails, the position
-          // exists on the exchange but has no in-process record — the bot loop's
-          // exit manager won't see it on the next tick (BE-stop, trailing,
-          // TP, time_kill all skipped). The native SL still protects against a
-          // crash, but managed exits are gone. Worst case we end up with a
-          // "stop-loss only" zombie position. Try to roll back via market sell;
-          // if rollback also fails, log a CRITICAL alert for manual intervention.
-          try {
-            insertTrade(trade);
-            console.log(`[V2] Trade opened: ${trade.ticker} @ $${trade.entryPrice.toFixed(2)} qty=${trade.quantity.toFixed(6)}`);
-            await sendEntryAlert(trade);
-
-            // Gatekeeper A/B (OFF arm): shadow-evaluate what the gatekeeper WOULD have
-            // decided for this executed trade. If it would have BLOCKED, log a PROCEED_AB
-            // row so the close handler attaches the outcome — that's the block-recall sample.
-            if (abOff) {
-              try {
-                const gk = await import('../../services/mlGatekeeper.js');
-                const cs = tickerCandles.get(bestRisk.ticker);
-                if (gk.evaluateEntry && cs && cs.length >= 50) {
-                  const fmt = cs.map(c => ({ o: c.open, h: c.high, l: c.low, c: c.close, v: c.volume }));
-                  const wd = gk.evaluateEntry(bestRisk.ticker, fmt, 'TREND', bestSignal.confidence, {});
-                  if (!wd.proceed) {
-                    const { insertGatekeeperDecision } = await import('../../services/database.js');
-                    insertGatekeeperDecision({
-                      ticker: bestRisk.ticker, decision: 'PROCEED_AB',
-                      ml_confidence: wd.confidence ? wd.confidence / 100 : 0, tier: wd.tier || '',
-                      final_size_multiplier: 1.0,
-                      reason: `AB-OFF forced through (gatekeeper would BLOCK: ${wd.reason})`,
-                    });
-                  }
-                }
-              } catch { /* shadow logging is best-effort */ }
-            }
-          } catch (insertErr) {
-            const ie = insertErr as Error;
-            console.error(`[V2] insertTrade failed for ${trade.ticker}: ${ie.message}`);
-            if (V2_CONFIG.MODE === 'live') {
-              try {
-                // Cancel the native SL FIRST — otherwise it survives the
-                // rollback sell and fires later against a position we no
-                // longer hold (selling a future re-entry's coins).
-                if (trade.stopOrderId) {
-                  try {
-                    await exchange!.cancelOrder(trade.stopOrderId);
-                  } catch (cancelErr) {
-                    console.error(`[V2] WARNING: could not cancel native SL ${trade.stopOrderId} during rollback: ${(cancelErr as Error).message}. Cancel it manually on Kraken.`);
-                  }
-                }
-                await exchange!.placeMarketSell(trade.ticker, trade.quantity);
-                console.error(`[V2] Position rolled back via market sell after insertTrade failure`);
-              } catch (rollbackErr) {
-                const re = rollbackErr as Error;
-                console.error(`[V2] CRITICAL: insertTrade + rollback BOTH failed for ${trade.ticker}: ${re.message}. Position is naked on exchange (native SL still in place but no managed exits). Manual intervention required.`);
-              }
-            }
-          }
+        if (useConfirm) {
+          stashTrendPending(bestSignal, allCandles);
         } else {
-          console.log(`[V2] Trade execution failed: ${decision.reason}`);
+          executedThisLoop = await openApprovedTrade(bestSignal, bestRisk, tickerCandles, abOff);
         }
       }
-    } else if (approved.length > 0) {
+    } else if (!executedThisLoop && approved.length > 0 && mlFiltered.length === 0) {
       // Had risk-approved trades but ML rejected them all
       console.log(`[V2] Loop #${stats.loopCount}: ML rejected all ${approved.length} risk-approved signals`);
-    } else {
+    } else if (!executedThisLoop && approved.length === 0 && passedSignals.length > 0) {
       // Log risk rejection reasons every 5 loops
       if (stats.loopCount % 5 === 1) {
         for (const r of riskResults) {
@@ -470,6 +447,187 @@ async function runLoop(): Promise<void> {
     stats.lastLoopAt = Date.now();
     loopInProgress = false;
   }
+}
+
+// --- Pending confirm helpers (promote package) ---
+
+function stashTrendPending(
+  signal: StrategySignal,
+  allCandles: Map<string, Map<string, Candle[]>>,
+): void {
+  const tf = signal._timeframe || V2_CONFIG.CANDLE_INTERVAL;
+  const candles = allCandles.get(signal.ticker)?.get(tf);
+  if (!candles || candles.length < 1) {
+    console.log(`[V2] CONFIRM skip ${signal.ticker}: no candles for ${tf}`);
+    return;
+  }
+  const signalBar = candles[candles.length - 1]!;
+  const atr = Number(signal.signals.atr) || 0;
+  const atrPercent = Number(signal.signals.atr_percent) || 0;
+  const side = (signal.side ?? 'long') as 'long' | 'short';
+  const key = signal.ticker;
+  const existing = _pendingConfirms.get(key);
+  if (existing && existing.pending.signalBarTime === signalBar.time) {
+    return; // already tracking this signal bar
+  }
+  const created = createPendingFromSignal(
+    signal.ticker,
+    signalBar,
+    atr,
+    atrPercent,
+    entryQualityConfig(),
+    side,
+  );
+  if (!created.ok) {
+    if (stats.loopCount % 5 === 1) {
+      console.log(`[V2] CONFIRM reject ${signal.ticker}: ${created.reason}`);
+    }
+    return;
+  }
+  _pendingConfirms.set(key, {
+    pending: created.pending,
+    signal,
+    lastSeenClosedBarTime: signalBar.time,
+  });
+  console.log(
+    `[V2] CONFIRM pending ${signal.ticker}: await_confirm signalBar=${new Date(signalBar.time).toISOString()} score=${signal.compositeScore.toFixed(1)}`,
+  );
+}
+
+async function processPendingConfirmEntries(
+  allCandles: Map<string, Map<string, Candle[]>>,
+  tickerCandles: Map<string, Candle[]>,
+  abOff: boolean,
+): Promise<boolean> {
+  const cfg = entryQualityConfig();
+  let executed = false;
+
+  for (const [key, stashed] of [..._pendingConfirms.entries()]) {
+    const tf = stashed.signal._timeframe || V2_CONFIG.CANDLE_INTERVAL;
+    const candles = allCandles.get(key)?.get(tf);
+    if (!candles || candles.length < 1) continue;
+    const last = candles[candles.length - 1]!;
+
+    if (last.time > stashed.lastSeenClosedBarTime) {
+      const adv = advancePendingOnClosedBar(stashed.pending, last, cfg);
+      stashed.lastSeenClosedBarTime = last.time;
+      if (adv.action === 'drop' || !adv.pending) {
+        console.log(`[V2] CONFIRM drop ${key} at bar ${new Date(last.time).toISOString()}`);
+        _pendingConfirms.delete(key);
+        continue;
+      }
+      stashed.pending = adv.pending;
+      if (adv.action === 'arm_entry') {
+        console.log(`[V2] CONFIRM armed ${key}: ready_enter after ${new Date(last.time).toISOString()}`);
+      }
+    }
+
+    if (!isEntryBarOpen(stashed.pending, stashed.lastSeenClosedBarTime)) continue;
+    if (executed) continue; // one entry per loop
+
+    // Re-run risk at entry time (portfolio may have changed since signal)
+    const portfolio = loadPortfolio(budget);
+    const cbState = getCircuitBreakerState(portfolio);
+    const riskResults = evaluateRisk(
+      [stashed.signal],
+      portfolio,
+      cbState,
+      exchange?.getName() ?? 'kraken',
+      tickerCandles,
+    );
+    const approved = getApproved(riskResults);
+    if (approved.length === 0) {
+      console.log(`[V2] CONFIRM entry risk-reject ${key}: ${riskResults[0]?.reason ?? 'unknown'}`);
+      _pendingConfirms.delete(key);
+      continue;
+    }
+
+    console.log(`[V2] CONFIRM entering ${key} score=${stashed.signal.compositeScore.toFixed(1)}`);
+    const ok = await openApprovedTrade(stashed.signal, approved[0]!, tickerCandles, abOff);
+    _pendingConfirms.delete(key);
+    if (ok) executed = true;
+  }
+
+  return executed;
+}
+
+async function openApprovedTrade(
+  bestSignal: StrategySignal,
+  bestRisk: RiskResult,
+  tickerCandles: Map<string, Candle[]>,
+  abOff: boolean,
+): Promise<boolean> {
+  if (!exchange) return false;
+  console.log(`[V2] Loop #${stats.loopCount}: executing ${bestSignal.ticker} score=${bestSignal.compositeScore.toFixed(1)} size=$${bestRisk.positionSizeUsd.toFixed(2)}`);
+
+  const { trade, decision } = await executeTrade(
+    bestSignal,
+    bestRisk,
+    exchange,
+    [],
+  );
+
+  if (!trade) {
+    console.log(`[V2] Trade execution failed: ${decision.reason}`);
+    return false;
+  }
+
+  // H4: insertTrade can throw (DB locked, schema drift, disk full).
+  try {
+    insertTrade(trade);
+    console.log(`[V2] Trade opened: ${trade.ticker} @ $${trade.entryPrice.toFixed(2)} qty=${trade.quantity.toFixed(6)}`);
+    await sendEntryAlert(trade);
+
+    if (abOff) {
+      try {
+        const gk = await import('../../services/mlGatekeeper.js');
+        const cs = tickerCandles.get(bestRisk.ticker);
+        if (gk.evaluateEntry && cs && cs.length >= 50) {
+          const fmt = cs.map(c => ({ o: c.open, h: c.high, l: c.low, c: c.close, v: c.volume }));
+          const wd = gk.evaluateEntry(bestRisk.ticker, fmt, 'TREND', bestSignal.confidence, {});
+          if (!wd.proceed) {
+            const { insertGatekeeperDecision } = await import('../../services/database.js');
+            insertGatekeeperDecision({
+              ticker: bestRisk.ticker, decision: 'PROCEED_AB',
+              ml_confidence: wd.confidence ? wd.confidence / 100 : 0, tier: wd.tier || '',
+              final_size_multiplier: 1.0,
+              reason: `AB-OFF forced through (gatekeeper would BLOCK: ${wd.reason})`,
+            });
+          }
+        }
+      } catch { /* shadow logging is best-effort */ }
+    }
+    return true;
+  } catch (insertErr) {
+    const ie = insertErr as Error;
+    console.error(`[V2] insertTrade failed for ${trade.ticker}: ${ie.message}`);
+    if (V2_CONFIG.MODE === 'live') {
+      try {
+        if (trade.stopOrderId) {
+          try {
+            await exchange.cancelOrder(trade.stopOrderId);
+          } catch (cancelErr) {
+            console.error(`[V2] WARNING: could not cancel native SL ${trade.stopOrderId} during rollback: ${(cancelErr as Error).message}. Cancel it manually on Kraken.`);
+          }
+        }
+        await exchange.placeMarketSell(trade.ticker, trade.quantity);
+        console.error(`[V2] Position rolled back via market sell after insertTrade failure`);
+      } catch (rollbackErr) {
+        const re = rollbackErr as Error;
+        console.error(`[V2] CRITICAL: insertTrade + rollback BOTH failed for ${trade.ticker}: ${re.message}. Position is naked on exchange (native SL still in place but no managed exits). Manual intervention required.`);
+      }
+    }
+    return false;
+  }
+}
+
+/** Test helper — clear pending confirm state between unit tests. */
+export function _resetPendingConfirmsForTests(): void {
+  _pendingConfirms.clear();
+}
+
+export function _pendingConfirmCountForTests(): number {
+  return _pendingConfirms.size;
 }
 
 // --- Exit Check Helper ---

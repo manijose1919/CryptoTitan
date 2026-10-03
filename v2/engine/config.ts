@@ -19,18 +19,26 @@ export const V2_CONFIG = {
     'ADAUSD', 'DOGEUSD', 'LINKUSD', 'DOTUSD', 'AVAXUSD',
   ],
   MIN_VOLUME_24H_USD: 500_000,
-  MIN_ATR_PERCENT: 1.0,  // 2026-07-21: raised from 0.3. Data mining: ATR<1% = 27.3% WR (n=132), death zone. ATR 1-2% = 51.7% WR, 2-3% = 63.5%. Minimum 1% eliminates fee-dominated noise trades.
-  MAX_ATR_PERCENT: 8.0,  // Widened for 4h — normal BTC 4h ATR% is 1-4%
+  // 2026-10-03 promote package: minATR 1.0→1.5 (with confirm+chase+MAX_ATR=2.5+allow UP
+  // cleared robust 90/45 earlier n=20 PF1.20 / OOS PF1.95). See docs/reviews/2026-10-02-up-confirm-promote-candidate.md
+  MIN_ATR_PERCENT: 1.5,
+  MAX_ATR_PERCENT: 2.5,
   MAX_SPREAD_PERCENT: 0.15,
 
   // --- Regime ---
-  // Fresh 90d pessimistic replay on the Canadian universe: STRONG_UP +$25.31
-  // vs UP -$105.33 after fees. Non-overlapping 45d halves were -$2.60/+13.91
-  // for STRONG_UP vs -$65.53/-$22.71 for UP. Prefer inactivity to negative edge.
-  ALLOWED_REGIMES: ['STRONG_UP'] as const,
+  // 2026-10-03: allow UP only as part of the confirm-entry package below.
+  // Bare allow_UP fails fee-aware 90/45 (earlier PF≈0.35); do not disable ENTRY_CONFIRM
+  // while UP remains allowed.
+  ALLOWED_REGIMES: ['STRONG_UP', 'UP'] as const,
   // 2026-07-21: UP+1h is a proven loser all-time (n=25, 40% WR, -$1.05/trade).
   // STRONG_UP+1h works (60% WR, +$0.45/trade). Restrict UP to 4h only.
   REGIME_TIMEFRAME_RESTRICT: { 'UP': ['4h'] } as Record<string, string[]>,
+
+  // --- Entry confirmation (promote package) ---
+  // Signal bar T → bullish confirm T+1 → enter T+2 open. Paper tradeEngine pending state.
+  ENTRY_CONFIRM_ENABLED: true,
+  ENTRY_CONFIRM_MODE: 'bullish_close' as const,
+  MAX_SIGNAL_CLOSE_LOCATION: 0.8,
 
   // --- Signal ---
   MIN_COMPOSITE_SCORE: 60,                // Was 70 — scoring math caps at ~64 in normal STRONG_UP; 70 only fires on extreme pullbacks
