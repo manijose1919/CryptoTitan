@@ -65,6 +65,8 @@ Loss autopsy (2026-09-30): OOS drag is **stop_loss** (−$112, avgR≈−1, ofte
 
 Confirm-bar research (2026-10-01/02): T+2 entry after a confirmation bar. Fixed a pre-entry exit bug (`holdBars=-1`). **Paper promote (2026-10-03):** allow UP **with** MAX_ATR=2.5 + bullish_close confirm + chase + minATR≥1.5 — cleared robust 90/45 (earlier n=20 PF≈1.20 / OOS PF≈1.95) and 60/60. Wired into paper `tradeEngine` pending-confirm path. Bare allow_UP still fails — do not disable confirm while UP is allowed. See [`docs/reviews/2026-10-02-up-confirm-promote-candidate.md`](docs/reviews/2026-10-02-up-confirm-promote-candidate.md).
 
+Soak (2026-10-03): first promote-package signal (SOLUSD) chase-rejected at closeLoc 0.89. Chase-threshold ablation under the package: 0.75–0.90 and chase-off all clear 90/45, but OOS is identical for 0.75–0.90 — **keep chase≤0.80**. See [`docs/reviews/2026-10-03-chase-threshold-soak.md`](docs/reviews/2026-10-03-chase-threshold-soak.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

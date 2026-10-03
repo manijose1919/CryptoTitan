@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-03 12:30 UTC — chase-threshold ablation + CONFIRM reject always-log — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/tradeEngine.ts`, `scripts/edge-chase-threshold-9045.ts`, `docs/reviews/2026-10-03-chase-threshold-soak.md`, `CHANGELOG.md`, `README.md`
+**Stats baseline reset:** **no** — no trading-config change; observability + research only.
+
+**What changed:**
+- Paper soak: first promote-package TREND signal (SOLUSD) chase-rejected at closeLoc 0.89.
+- Ablated chase 0.75/0.80/0.85/0.90/off under fixed promote package. All clear robust 90/45; OOS identical for 0.75–0.90 → **keep chase≤0.80**.
+- `CONFIRM reject` now always logs (was rate-limited to every 5th loop).
+
+**Why:**
+Live reject looked like a fill-starvation bug; evidence says the gate is binding as designed and loosening does not improve OOS.
+
+**What to monitor / watch for:**
+- Continuous `CONFIRM reject … chase` on the same 4h bar is expected until the bar rolls.
+- Next non-chase signal should log `CONFIRM pending` → `armed` → `entering`.
+- Do not loosen chase or disable ENTRY_CONFIRM without a new fee-aware promote.
+
+---
+
 ## 2026-10-03 00:20 UTC — wire UP+confirm promote package into paper runtime — cursor-cloud
 
 **Commits:** this branch

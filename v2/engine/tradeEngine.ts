@@ -479,9 +479,9 @@ function stashTrendPending(
     side,
   );
   if (!created.ok) {
-    if (stats.loopCount % 5 === 1) {
-      console.log(`[V2] CONFIRM reject ${signal.ticker}: ${created.reason}`);
-    }
+    // Always log — confirm rejects are rare soak signals; rate-limiting hid them
+    // between %5 loops while the same 4h bar kept re-signaling every minute.
+    console.log(`[V2] CONFIRM reject ${signal.ticker}: ${created.reason}`);
     return;
   }
   _pendingConfirms.set(key, {
