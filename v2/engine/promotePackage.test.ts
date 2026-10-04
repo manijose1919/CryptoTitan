@@ -14,6 +14,7 @@ describe('2026-10-03 UP+confirm promote package config', () => {
     );
     expect(V2_CONFIG.MAX_ATR_PERCENT).toBe(2.5);
     expect(V2_CONFIG.MIN_ATR_PERCENT).toBe(PROMOTE_ENTRY_QUALITY.minSignalAtrPercent);
+    expect(PROMOTE_ENTRY_QUALITY.barIntervalMs).toBe(4 * 60 * 60 * 1000);
     // UP still restricted off 1h
     expect(V2_CONFIG.REGIME_TIMEFRAME_RESTRICT.UP).toEqual(['4h']);
   });

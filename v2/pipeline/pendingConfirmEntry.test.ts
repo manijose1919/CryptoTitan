@@ -12,7 +12,8 @@ function bar(time: number, o: number, h: number, l: number, c: number): Candle {
 }
 
 describe('pendingConfirmEntry (promote package)', () => {
-  const cfg = PROMOTE_ENTRY_QUALITY;
+  // Unit times use a 1000ms bar so fixtures stay small; promote default is 4h.
+  const cfg = { ...PROMOTE_ENTRY_QUALITY, barIntervalMs: 1000 };
 
   it('rejects chase signal bars (close near high)', () => {
     const signal = bar(1000, 100, 110, 100, 109); // closeLoc=0.9
@@ -50,12 +51,38 @@ describe('pendingConfirmEntry (promote package)', () => {
     const signal = bar(1000, 100, 105, 99, 102);
     const created = createPendingFromSignal('ETHUSD', signal, 2, 2.0, cfg);
     if (!created.ok) return;
-    const green = bar(2000, 102, 106, 101, 105);
+    const green = bar(1000 + cfg.barIntervalMs, 102, 106, 101, 105);
     const armed = advancePendingOnClosedBar(created.pending, green, cfg);
     expect(armed.pending).not.toBeNull();
-    const entryClosed = bar(3000, 105, 107, 104, 106);
+    const entryClosed = bar(1000 + 2 * cfg.barIntervalMs, 105, 107, 104, 106);
     const missed = advancePendingOnClosedBar(armed.pending!, entryClosed, cfg);
     expect(missed.action).toBe('drop');
     expect(missed.pending).toBeNull();
+  });
+
+  it('drops await_confirm when a later bar skips the T+1 confirm window', () => {
+    // Reproduce post-suspend soak bug: signal 12:00, wake on 00:00 (+3 bars).
+    const liveCfg = PROMOTE_ENTRY_QUALITY; // 4h
+    const interval = liveCfg.barIntervalMs;
+    const signal = bar(1_000_000, 100, 105, 99, 102);
+    const created = createPendingFromSignal('SOLUSD', signal, 2, 2.0, liveCfg);
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    const skipped = bar(1_000_000 + 3 * interval, 102, 108, 101, 107); // bullish but late
+    const missed = advancePendingOnClosedBar(created.pending, skipped, liveCfg);
+    expect(missed.action).toBe('drop');
+    expect(missed.pending).toBeNull();
+    expect(missed.reason).toMatch(/missed confirm bar/);
+  });
+
+  it('waits when closed bar is before the expected confirm time', () => {
+    const signal = bar(1000, 100, 105, 99, 102);
+    const created = createPendingFromSignal('SOLUSD', signal, 2, 2.0, cfg);
+    if (!created.ok) return;
+    const tooEarly = bar(1000 + 500, 102, 103, 101, 102.5);
+    const waited = advancePendingOnClosedBar(created.pending, tooEarly, cfg);
+    expect(waited.action).toBe('wait');
+    expect(waited.pending).not.toBeNull();
   });
 });

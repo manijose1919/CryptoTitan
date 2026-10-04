@@ -12,6 +12,8 @@ export interface EntryQualityConfig {
   confirmMode: ConfirmMode;
   maxSignalCloseLocation: number;
   minSignalAtrPercent: number;
+  /** Signal→confirm must be exactly one bar; skips (e.g. VM suspend) drop. */
+  barIntervalMs: number;
 }
 
 /** Promote-candidate defaults (2026-10-02 robust 90/45 clear). */
@@ -19,6 +21,7 @@ export const PROMOTE_ENTRY_QUALITY: EntryQualityConfig = {
   confirmMode: 'bullish_close',
   maxSignalCloseLocation: 0.8,
   minSignalAtrPercent: 1.5,
+  barIntervalMs: 4 * 60 * 60 * 1000,
 };
 
 export type PendingStatus = 'await_confirm' | 'ready_enter';
@@ -120,19 +123,31 @@ export function createPendingFromSignal(
 
 /**
  * Advance pending state when a new closed bar arrives.
- * - await_confirm + confirm bar → ready_enter (or drop)
+ * - await_confirm + exact next bar → ready_enter (or drop on failed confirm)
+ * - await_confirm + skipped bar(s) → drop (missed confirm window; backtest uses T+1 only)
  * - ready_enter + entry bar closed without fill → drop
  */
 export function advancePendingOnClosedBar(
   pending: PendingConfirmEntry,
   closedBar: Candle,
   cfg: EntryQualityConfig,
-): { pending: PendingConfirmEntry | null; action: 'wait' | 'drop' | 'arm_entry' | 'enter_now' } {
+): { pending: PendingConfirmEntry | null; action: 'wait' | 'drop' | 'arm_entry' | 'enter_now'; reason?: string } {
   if (closedBar.time <= pending.signalBarTime) {
     return { pending, action: 'wait' };
   }
 
   if (pending.status === 'await_confirm') {
+    const expectedConfirmTime = pending.signalBarTime + cfg.barIntervalMs;
+    if (closedBar.time < expectedConfirmTime) {
+      return { pending, action: 'wait' };
+    }
+    if (closedBar.time > expectedConfirmTime) {
+      return {
+        pending: null,
+        action: 'drop',
+        reason: `missed confirm bar (got ${new Date(closedBar.time).toISOString()}, expected ${new Date(expectedConfirmTime).toISOString()})`,
+      };
+    }
     const signalBar: Candle = {
       time: pending.signalBarTime,
       open: pending.signalOpen,
@@ -143,7 +158,7 @@ export function advancePendingOnClosedBar(
     };
     const conf = passesConfirm(signalBar, closedBar, cfg.confirmMode, pending.side);
     if (!conf.ok) {
-      return { pending: null, action: 'drop' };
+      return { pending: null, action: 'drop', reason: conf.reason ?? 'confirm failed' };
     }
     return {
       pending: {
@@ -157,7 +172,7 @@ export function advancePendingOnClosedBar(
 
   // ready_enter: if a bar after confirm closes, entry window was missed.
   if (pending.confirmBarTime != null && closedBar.time > pending.confirmBarTime) {
-    return { pending: null, action: 'drop' };
+    return { pending: null, action: 'drop', reason: 'missed entry bar open' };
   }
   return { pending, action: 'enter_now' };
 }

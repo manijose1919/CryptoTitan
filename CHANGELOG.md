@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-04 00:30 UTC — fix confirm skip-bar after VM suspend — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/pipeline/pendingConfirmEntry.ts`, `v2/pipeline/pendingConfirmEntry.test.ts`, `v2/engine/tradeEngine.ts`, `v2/engine/promotePackage.test.ts`, docs/CHANGELOG
+**Stats baseline reset:** **no** — correctness fix; no trading-parameter change.
+
+**What changed:**
+- Paper soak: after ~11.5h VM suspend, pending SOLUSD confirm skipped T+1/T+2 and armed on `2026-10-04T00:00Z`, then entered (first post-baseline fill @ $119.30 — suspend artifact).
+- Pending confirm now requires the **exact next bar** (`signalBarTime + barIntervalMs`); skipped bars drop with `missed confirm bar`.
+
+**Why:**
+Backtest confirmMode uses candles[bar+1] only. Accepting any later closed bar after suspend breaks T+2 parity and can fill at the wrong price.
+
+**What to monitor / watch for:**
+- After suspend/resume with a stale pending: expect `CONFIRM drop … missed confirm bar`, never arm/enter on a skipped window.
+- Existing anomalous SOLUSD open may exit via normal stops/trail; do not treat its P&L as clean promote-package evidence.
+- Rollback: revert pendingConfirmEntry interval check (not recommended).
+
+---
+
 ## 2026-10-03 12:30 UTC — chase-threshold ablation + CONFIRM reject always-log — cursor-cloud
 
 **Commits:** this branch

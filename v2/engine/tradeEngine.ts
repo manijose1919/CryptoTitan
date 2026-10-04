@@ -59,6 +59,14 @@ interface StashedPending {
 }
 const _pendingConfirms = new Map<string, StashedPending>();
 
+function candleIntervalMs(): number {
+  const iv = V2_CONFIG.CANDLE_INTERVAL;
+  if (iv === '1h') return 60 * 60 * 1000;
+  if (iv === '15m') return 15 * 60 * 1000;
+  if (iv === '1m') return 60 * 1000;
+  return 4 * 60 * 60 * 1000; // 4h default (promote package)
+}
+
 function entryQualityConfig(): EntryQualityConfig {
   return {
     confirmMode: (V2_CONFIG as { ENTRY_CONFIRM_MODE?: EntryQualityConfig['confirmMode'] }).ENTRY_CONFIRM_MODE
@@ -66,6 +74,7 @@ function entryQualityConfig(): EntryQualityConfig {
     maxSignalCloseLocation: (V2_CONFIG as { MAX_SIGNAL_CLOSE_LOCATION?: number }).MAX_SIGNAL_CLOSE_LOCATION
       ?? PROMOTE_ENTRY_QUALITY.maxSignalCloseLocation,
     minSignalAtrPercent: V2_CONFIG.MIN_ATR_PERCENT,
+    barIntervalMs: candleIntervalMs(),
   };
 }
 
@@ -512,7 +521,10 @@ async function processPendingConfirmEntries(
       const adv = advancePendingOnClosedBar(stashed.pending, last, cfg);
       stashed.lastSeenClosedBarTime = last.time;
       if (adv.action === 'drop' || !adv.pending) {
-        console.log(`[V2] CONFIRM drop ${key} at bar ${new Date(last.time).toISOString()}`);
+        console.log(
+          `[V2] CONFIRM drop ${key} at bar ${new Date(last.time).toISOString()}`
+            + (adv.reason ? `: ${adv.reason}` : ''),
+        );
         _pendingConfirms.delete(key);
         continue;
       }
