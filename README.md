@@ -67,7 +67,7 @@ Confirm-bar research (2026-10-01/02): T+2 entry after a confirmation bar. Fixed 
 
 Soak (2026-10-03): first promote-package signal (SOLUSD) chase-rejected at closeLoc 0.89. Chase-threshold ablation under the package: 0.75–0.90 and chase-off all clear 90/45, but OOS is identical for 0.75–0.90 — **keep chase≤0.80**. See [`docs/reviews/2026-10-03-chase-threshold-soak.md`](docs/reviews/2026-10-03-chase-threshold-soak.md).
 
-Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar and filled SOLUSD late. Pending confirm now drops if the T+1 bar is missed (`signal + barInterval`). See [`docs/reviews/2026-10-04-confirm-skip-bar-suspend.md`](docs/reviews/2026-10-04-confirm-skip-bar-suspend.md).
+Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar and filled SOLUSD late. Pending confirm now drops if the T+1 bar is missed (`signal + barInterval`). See [`docs/reviews/2026-10-04-confirm-skip-bar-suspend.md`](docs/reviews/2026-10-04-confirm-skip-bar-suspend.md). Wall-clock loop watchdog kicks stale loops after suspend. minATR ablation under the package: keep 1.5 (1.0–1.5 identical on 90/45). See [`docs/reviews/2026-10-04-minatr-and-loop-watchdog.md`](docs/reviews/2026-10-04-minatr-and-loop-watchdog.md).
 
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 

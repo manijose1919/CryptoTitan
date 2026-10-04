@@ -25,6 +25,7 @@ import {
   type EntryQualityConfig,
   type PendingConfirmEntry,
 } from '../pipeline/pendingConfirmEntry.ts';
+import { shouldForceUnlockLoop, shouldKickStaleLoop } from './loopWatchdog.ts';
 import type { RiskResult } from '../pipeline/types.ts';
 
 // Attribution imports
@@ -46,8 +47,12 @@ import { loadPortfolio, getCircuitBreakerState } from './positionManager.ts';
 // --- State ---
 
 let loopTimer: ReturnType<typeof setInterval> | null = null;
+let watchdogTimer: ReturnType<typeof setInterval> | null = null;
 let isRunning = false;
 let loopInProgress = false; // Prevents concurrent runLoop() calls
+let loopStartedAt = 0; // wall-clock when loopInProgress became true
+const LOOP_STALE_MULT = 3; // kick if lastLoopAt older than 3× BOT_LOOP_INTERVAL
+const LOOP_MAX_MS = 5 * 60_000; // force-unlock hung loop after 5 min
 let exchange: ExchangeAdapter | null = null;
 let budget = 0;
 
@@ -192,6 +197,42 @@ export function startV2Engine(): void {
   loopTimer = setInterval(() => {
     runLoop();
   }, V2_CONFIG.BOT_LOOP_INTERVAL_MS);
+
+  // Wall-clock watchdog: Node timers freeze across VM suspend; lastLoopAt is
+  // wall-clock so the monitor goes stale until setInterval catches up. Kick
+  // (and unlock a hung mutex) using Date.now() so exits/entries resume promptly.
+  if (watchdogTimer) clearInterval(watchdogTimer);
+  watchdogTimer = setInterval(() => {
+    const now = Date.now();
+    if (
+      shouldForceUnlockLoop({
+        loopInProgress,
+        loopStartedAt,
+        now,
+        maxLoopMs: LOOP_MAX_MS,
+      })
+    ) {
+      console.warn(
+        `[V2] Watchdog force-unlock: loopInProgress held ${Math.round((now - loopStartedAt) / 1000)}s`,
+      );
+      loopInProgress = false;
+      loopStartedAt = 0;
+    }
+    if (
+      shouldKickStaleLoop({
+        isRunning,
+        lastLoopAt: stats.lastLoopAt,
+        now,
+        loopIntervalMs: V2_CONFIG.BOT_LOOP_INTERVAL_MS,
+        staleMult: LOOP_STALE_MULT,
+      })
+    ) {
+      console.warn(
+        `[V2] Watchdog kick: lastLoopAt age ${Math.round((now - stats.lastLoopAt) / 1000)}s — running loop`,
+      );
+      void runLoop();
+    }
+  }, Math.min(30_000, V2_CONFIG.BOT_LOOP_INTERVAL_MS));
 }
 
 /**
@@ -201,6 +242,10 @@ export function stopV2Engine(): void {
   if (loopTimer) {
     clearInterval(loopTimer);
     loopTimer = null;
+  }
+  if (watchdogTimer) {
+    clearInterval(watchdogTimer);
+    watchdogTimer = null;
   }
   isRunning = false;
   console.log('[V2] Engine stopped');
@@ -248,8 +293,9 @@ async function runLoop(): Promise<void> {
     return;
   }
   loopInProgress = true;
+  loopStartedAt = Date.now();
 
-  const loopStart = Date.now();
+  const loopStart = loopStartedAt;
   stats.loopCount++;
 
   try {
@@ -455,6 +501,7 @@ async function runLoop(): Promise<void> {
   } finally {
     stats.lastLoopAt = Date.now();
     loopInProgress = false;
+    loopStartedAt = 0;
   }
 }
 

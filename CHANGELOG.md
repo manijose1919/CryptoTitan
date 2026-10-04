@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-04 12:15 UTC — loop watchdog + minATR ablation (keep 1.5) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/loopWatchdog.ts`, `v2/engine/loopWatchdog.test.ts`, `v2/engine/tradeEngine.ts`, `scripts/edge-minatr-9045.ts`, docs/CHANGELOG/README
+**Stats baseline reset:** **no** — ops watchdog + research only; MIN_ATR stays 1.5.
+
+**What changed:**
+- Wall-clock loop watchdog: kick stale loops after VM suspend; force-unlock hung `loopInProgress` after 5 min.
+- Ablated minATR 1.0/1.25/1.5/1.75/off under promote package — **keep 1.5** (1.0–1.5 identical on 90/45).
+- Soak: SOLUSD artifact long trailing ~+$1.9% (stop above entry); ATR-starved scanner; no new clean fills.
+
+**Why:**
+Suspend repeatedly stalls exits/entries; watchdog restores wall-clock progress. ATR floor loosen was hypothesized for soak starvation but has no fee-aware trade-count gain.
+
+**What to monitor / watch for:**
+- Logs: `Watchdog kick` / `Watchdog force-unlock` after host resume.
+- Do not lower MIN_ATR without a new window where lower floors add trades *and* clear the bar with better OOS.
+- SOL artifact exit: tag P&L as contaminated.
+
+---
+
 ## 2026-10-04 00:30 UTC — fix confirm skip-bar after VM suspend — cursor-cloud
 
 **Commits:** this branch
