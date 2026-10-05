@@ -19,17 +19,17 @@ export const V2_CONFIG = {
     'ADAUSD', 'DOGEUSD', 'LINKUSD', 'DOTUSD', 'AVAXUSD',
   ],
   MIN_VOLUME_24H_USD: 500_000,
-  // 2026-10-03 promote package: minATR 1.0→1.5 (with confirm+chase+MAX_ATR=2.5+allow UP
-  // cleared robust 90/45 earlier n=20 PF1.20 / OOS PF1.95). See docs/reviews/2026-10-02-up-confirm-promote-candidate.md
+  // 2026-10-03: minATR 1.0→1.5 with confirm+chase+MAX_ATR=2.5 (UP later rolled back 2026-10-05).
   MIN_ATR_PERCENT: 1.5,
   MAX_ATR_PERCENT: 2.5,
   MAX_SPREAD_PERCENT: 0.15,
 
   // --- Regime ---
-  // 2026-10-03: allow UP only as part of the confirm-entry package below.
-  // Bare allow_UP fails fee-aware 90/45 (earlier PF≈0.35); do not disable ENTRY_CONFIRM
-  // while UP remains allowed.
-  ALLOWED_REGIMES: ['STRONG_UP', 'UP'] as const,
+  // 2026-10-05: rolled back to STRONG_UP-only. The 2026-10-03 UP+confirm promote
+  // cleared robust 90/45 *without* paper ADX≥20; with minAdx=20 it fails
+  // (OOS PF≈0.87 / −$3.70). UP trades under ADX are the drag; STRONG_UP+confirm
+  // stays PF-positive but n-starved. Do not re-enable UP without ADX-parity clear.
+  ALLOWED_REGIMES: ['STRONG_UP'] as const,
   // 2026-07-21: UP+1h is a proven loser all-time (n=25, 40% WR, -$1.05/trade).
   // STRONG_UP+1h works (60% WR, +$0.45/trade). Restrict UP to 4h only.
   REGIME_TIMEFRAME_RESTRICT: { 'UP': ['4h'] } as Record<string, string[]>,

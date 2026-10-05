@@ -36,8 +36,8 @@ describe('Canadian trading universe', () => {
     expect(SNIPER_CONFIG.ENABLED).toBe(false);
     expect(MR_CONFIG.ENABLED).toBe(false);
     expect(PAIRS_CONFIG.MODE).toBe('off');
-    // 2026-10-03 promote package: UP allowed only with ENTRY_CONFIRM_ENABLED
-    expect(V2_CONFIG.ALLOWED_REGIMES).toEqual(['STRONG_UP', 'UP']);
+    // 2026-10-05: UP rolled back (ADX-parity); keep confirm + ATR band
+    expect(V2_CONFIG.ALLOWED_REGIMES).toEqual(['STRONG_UP']);
     expect((V2_CONFIG as { ENTRY_CONFIRM_ENABLED?: boolean }).ENTRY_CONFIRM_ENABLED).toBe(true);
     expect(V2_CONFIG.MAX_ATR_PERCENT).toBe(2.5);
     expect(V2_CONFIG.MIN_ATR_PERCENT).toBe(1.5);

@@ -17,6 +17,9 @@ export interface StrategySignal extends SignalResult {
   _timeframe: string;
 }
 
+/** Rate-limit ADX-block soak logs (wall-clock). */
+let _lastAdxBlockLogAt = 0;
+
 /**
  * Run all enabled strategies across their optimal timeframes.
  * Returns all passing signals sorted by confidence (best first).
@@ -51,13 +54,18 @@ export function runAllStrategies(
     // crash the loop (2026-06-09: BREAKOUT removal did exactly that).
     // --- TREND (ADX gate + per-regime timeframe restriction) ---
     if (STRATEGY_TIMEFRAMES.TREND?.includes(tf) && passedScan.length > 0) {
-      // ADX gate: only enter TREND when market is genuinely trending (ADX>25).
+      // ADX gate: only enter TREND when market is genuinely trending.
       // Root cause of prior losses: EMA regime called UP in ranging conditions.
       const regimeTfRestrict = (V2_CONFIG as any).REGIME_TIMEFRAME_RESTRICT as Record<string, string[]> | undefined;
+      const adxBlocked: string[] = [];
       const trendPassed = passedScan.filter(scan => {
         const candles = tfCandles.get(scan.ticker);
         if (!candles || candles.length < 30) return false;
-        if (adx(candles) < ADX_THRESHOLDS.TREND_MIN) return false;
+        const adxVal = adx(candles);
+        if (adxVal < ADX_THRESHOLDS.TREND_MIN) {
+          adxBlocked.push(`${scan.ticker} ADX ${adxVal.toFixed(1)}<${ADX_THRESHOLDS.TREND_MIN}`);
+          return false;
+        }
         // 2026-07-21: UP+1h proven loser (n=25, 40% WR, -$1.05/trade).
         // If regime has a timeframe restriction, enforce it.
         if (regimeTfRestrict && scan.regime && regimeTfRestrict[scan.regime]) {
@@ -65,6 +73,14 @@ export function runAllStrategies(
         }
         return true;
       });
+      // Soak observability: scan-PASS but ADX-blocked is the current dark-path cause.
+      if (adxBlocked.length > 0 && tf === V2_CONFIG.CANDLE_INTERVAL) {
+        const now = Date.now();
+        if (now - _lastAdxBlockLogAt > 5 * 60_000) {
+          _lastAdxBlockLogAt = now;
+          console.log(`[V2] ADX block ${tf}: ${adxBlocked.join('; ')}`);
+        }
+      }
       if (trendPassed.length > 0) {
         const trendSignals = generateSignals(trendPassed, tfCandles);
         for (const sig of getPassedSignals(trendSignals)) {

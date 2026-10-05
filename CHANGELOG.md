@@ -47,6 +47,28 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-05 12:30 UTC — rollback UP (ADX≥20 evidence); ADX block soak log — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/config.ts`, `v2/engine/strategyRunner.ts`, `v2/engine/promotePackage.test.ts`, `v2/engine/cadUniverse.test.ts`, research scripts, docs/CHANGELOG/README
+**Stats baseline reset:** **yes** on `:3137` after restart — material regime tighten (UP removed).
+
+**What changed:**
+- Fee-aware search under `minAdx=20`: every UP-inclusive stack fails robust 90/45; STRONG_UP+confirm is PF-positive but n-starved (n≈6–7).
+- Paper: `ALLOWED_REGIMES` → `['STRONG_UP']` only; keep confirm+chase+ATR band+ADX.
+- Soak log: rate-limited `[V2] ADX block …` when scan-PASS tickers fail ADX.
+
+**Why:**
+Prior UP promote omitted paper ADX. With ADX parity, UP trades destroy earlier/OOS PF; rolling back UP is an evidence-backed tighten.
+
+**What to monitor / watch for:**
+- Scanner rejects UP with “not in allowed: [STRONG_UP]”.
+- `ADX block` lines when DOGE/LINK/etc PASS ATR/regime but ADX&lt;20.
+- Do not re-enable UP without a fee-aware clear that includes `minAdx=20`.
+- Rollback: restore `ALLOWED_REGIMES: ['STRONG_UP','UP']` (not recommended).
+
+---
+
 ## 2026-10-05 00:30 UTC — ADX backtest parity; promote package optimistic vs paper — cursor-cloud
 
 **Commits:** this branch
