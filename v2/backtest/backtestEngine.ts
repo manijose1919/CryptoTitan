@@ -9,7 +9,7 @@ import type { Candle } from '../pipeline/types.ts';
 import { EXIT_REASON } from '../pipeline/types.ts';
 import { V2_CONFIG, MOMENTUM_CONFIG, STRATEGY_EXIT_CONFIGS } from '../engine/config.ts';
 import type { StrategyExitConfig } from '../engine/config.ts';
-import { computeSignals } from '../indicators/indicators.ts';
+import { adx, computeSignals } from '../indicators/indicators.ts';
 import { evaluateSignals } from '../pipeline/signalGenerator.ts';
 import { detectMomentumEntry } from '../pipeline/momentumSignal.ts';
 import { checkTimeGate } from '../pipeline/timeGate.ts';
@@ -435,7 +435,11 @@ function simulateTicker(
 
     // --- TREND entry attempt ---
     let trendEntry = false;
-    if (passed) {
+    // Paper strategyRunner ADX gate (optional; set entryFilters.minAdx for parity)
+    const adxOk =
+      config.entryFilters?.minAdx == null
+      || (window.length >= 30 && adx(window) >= config.entryFilters.minAdx);
+    if (passed && adxOk) {
       const { signals, regime } = computeSignals(window);
       const evals = evaluateSignals(signals);
       const totalWeight = evals.reduce((sum, e) => sum + e.weight, 0);

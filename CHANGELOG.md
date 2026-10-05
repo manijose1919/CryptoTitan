@@ -47,6 +47,28 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-05 00:30 UTC — ADX backtest parity; promote package optimistic vs paper — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/backtest/types.ts`, `v2/backtest/backtestEngine.ts`, `scripts/edge-adx-parity-9045.ts`, `scripts/diag-pass-no-signal.ts`, docs/CHANGELOG/README
+**Stats baseline reset:** **no** — research/diagnostics; no runtime trading-parameter change.
+
+**What changed:**
+- Soak: SOLUSD artifact closed trailing **+$0.86**; watchdog kicked after 42220s stale (proven).
+- ADA/LINK/AVAX scan-PASS but ADX 12–17 &lt; 20 → no TREND signals (`diag-pass-no-signal`).
+- Backtest: optional `entryFilters.minAdx`. With promote package + **ADX≥20**, robust 90/45 **fails** (OOS PF 0.87 / −$3.70). No-ADX control still passes.
+- **Keep paper ADX≥20.** Prior promote clear was optimistic vs paper.
+
+**Why:**
+Paper darkness with PASS tickers was ADX, not confirm/chase. Research that omits ADX overstates fill rate and expectancy vs `:3137`.
+
+**What to monitor / watch for:**
+- Future promote claims must include `minAdx: 20` (or document explicit no-ADX).
+- Do not lower `ADX_THRESHOLDS.TREND_MIN` without a fee-aware clear under ADX.
+- Next research: find a stack that clears 90/45 *with* paper ADX parity.
+
+---
+
 ## 2026-10-04 12:15 UTC — loop watchdog + minATR ablation (keep 1.5) — cursor-cloud
 
 **Commits:** this branch

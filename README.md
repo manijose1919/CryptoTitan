@@ -69,6 +69,8 @@ Soak (2026-10-03): first promote-package signal (SOLUSD) chase-rejected at close
 
 Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar and filled SOLUSD late. Pending confirm now drops if the T+1 bar is missed (`signal + barInterval`). See [`docs/reviews/2026-10-04-confirm-skip-bar-suspend.md`](docs/reviews/2026-10-04-confirm-skip-bar-suspend.md). Wall-clock loop watchdog kicks stale loops after suspend. minATR ablation under the package: keep 1.5 (1.0–1.5 identical on 90/45). See [`docs/reviews/2026-10-04-minatr-and-loop-watchdog.md`](docs/reviews/2026-10-04-minatr-and-loop-watchdog.md).
 
+**ADX parity (2026-10-05):** paper `ADX≥20` was missing from promote-package backtests. With `minAdx=20`, that package **fails** robust 90/45 — keep paper ADX; treat prior clear as optimistic. See [`docs/reviews/2026-10-05-adx-parity-and-sol-exit.md`](docs/reviews/2026-10-05-adx-parity-and-sol-exit.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
