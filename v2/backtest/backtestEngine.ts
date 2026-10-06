@@ -543,46 +543,70 @@ function simulateTicker(
     }
 
     // --- MOMENTUM fallback entry (same ADX gate as paper strategyRunner) ---
+    // confirmMomentum+confirmMode → T+2 confirm parity with TREND (research).
+    // Default: next-bar fill (paper today — confirm is TREND-only in tradeEngine).
     if (!trendEntry && MOMENTUM_CONFIG.ENABLED && adxOk) {
       const momSignal = detectMomentumEntry(window, ticker);
       if (momSignal && momSignal.confidence >= MOMENTUM_CONFIG.MIN_CONFIDENCE) {
-        const momPrice = getNextBarEntryPrice(
-          candles,
-          bar,
-          'long',
-          config.slippagePerSide,
-        )!;
-        const momAtr = momSignal.signals.atr as number;
-        const momAtrPct = momSignal.signals.atr_percent as number;
-        const momSwingLow = momSignal.signals.mom_swing_low as number | undefined;
-        let momSl = momPrice - momAtr * 2.0;
-        if (momSwingLow != null && momSwingLow > 0 && momSwingLow < momPrice) {
-          momSl = Math.min(momSwingLow - momAtr * 0.2, momPrice - momAtr * 1.5);
+        const confirmMode = config.entryFilters?.confirmMode;
+        const useMomConfirm = !!(confirmMode && config.entryFilters?.confirmMomentum);
+        const signalBar = window[window.length - 1]!;
+        let entrySignalIndex = bar;
+        let entryCandle = nextCandle;
+        let confirmOk = true;
+        if (useMomConfirm) {
+          const confirmBar = candles[bar + 1];
+          const entryBarCandle = candles[bar + 2];
+          if (!confirmBar || !entryBarCandle) {
+            confirmOk = false;
+          } else {
+            confirmOk = passesConfirmBar(signalBar, confirmBar, confirmMode, 'long').ok;
+            entrySignalIndex = bar + 1;
+            entryCandle = entryBarCandle;
+          }
         }
-        const momTp = momPrice + momAtr * 3.0;
-        let momPosSize = state.cash * V2_CONFIG.BASE_POSITION_PERCENT * momSignal.confidence;
-        // Risk-based cap (same as TREND — was missing)
-        const momStopDist = (momPrice - momSl) / momPrice;
-        if (momStopDist > 0 && V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT > 0) {
-          const momMaxRisk = config.budgetPerTicker * V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT;
-          const momRiskCap = momMaxRisk / momStopDist;
-          if (momPosSize > momRiskCap) momPosSize = momRiskCap;
-        }
-        if (momPosSize >= 10 && momPosSize <= state.cash) {
-          const momQty = momPrice > 0 ? momPosSize / momPrice : 0;
-          state.cash -= momPosSize;
-          state.openTrades.push({
-            id: nextTradeId(ticker) + 'M',
-            ticker, side: 'long', entryBar: bar + 1, entryPrice: momPrice,
-            entryTime: nextCandle.time, entrySignals: momSignal.signals,
-            entryRegime: momSignal.regime, entryConfidence: momSignal.confidence,
-            compositeScore: momSignal.compositeScore,
-            exitBar: null, exitPrice: null, exitTime: null, exitReason: null,
-            quantity: momQty, positionSizeUsd: momPosSize, stopLoss: momSl, takeProfit: momTp,
-            currentStop: momSl, trailingActivated: false, peakPrice: momPrice,
-            pnlGross: null, pnlNet: null, feesPaid: 0,
-            holdBars: 0, holdDurationMs: null, atrPercent: momAtrPct,
-          });
+        if (confirmOk) {
+          const momPrice = getNextBarEntryPrice(
+            candles,
+            entrySignalIndex,
+            'long',
+            config.slippagePerSide,
+          );
+          if (momPrice != null) {
+            const momAtr = momSignal.signals.atr as number;
+            const momAtrPct = momSignal.signals.atr_percent as number;
+            const momSwingLow = momSignal.signals.mom_swing_low as number | undefined;
+            let momSl = momPrice - momAtr * 2.0;
+            if (momSwingLow != null && momSwingLow > 0 && momSwingLow < momPrice) {
+              momSl = Math.min(momSwingLow - momAtr * 0.2, momPrice - momAtr * 1.5);
+            }
+            const momTp = momPrice + momAtr * 3.0;
+            let momPosSize = state.cash * V2_CONFIG.BASE_POSITION_PERCENT * momSignal.confidence;
+            // Risk-based cap (same as TREND — was missing)
+            const momStopDist = (momPrice - momSl) / momPrice;
+            if (momStopDist > 0 && V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT > 0) {
+              const momMaxRisk = config.budgetPerTicker * V2_CONFIG.MAX_RISK_PER_TRADE_PERCENT;
+              const momRiskCap = momMaxRisk / momStopDist;
+              if (momPosSize > momRiskCap) momPosSize = momRiskCap;
+            }
+            if (momPosSize >= 10 && momPosSize <= state.cash) {
+              const momQty = momPrice > 0 ? momPosSize / momPrice : 0;
+              const entryBarIndex = entrySignalIndex + 1;
+              state.cash -= momPosSize;
+              state.openTrades.push({
+                id: nextTradeId(ticker) + 'M',
+                ticker, side: 'long', entryBar: entryBarIndex, entryPrice: momPrice,
+                entryTime: entryCandle.time, entrySignals: momSignal.signals,
+                entryRegime: momSignal.regime, entryConfidence: momSignal.confidence,
+                compositeScore: momSignal.compositeScore,
+                exitBar: null, exitPrice: null, exitTime: null, exitReason: null,
+                quantity: momQty, positionSizeUsd: momPosSize, stopLoss: momSl, takeProfit: momTp,
+                currentStop: momSl, trailingActivated: false, peakPrice: momPrice,
+                pnlGross: null, pnlNet: null, feesPaid: 0,
+                holdBars: 0, holdDurationMs: null, atrPercent: momAtrPct,
+              });
+            }
+          }
         }
       }
     }

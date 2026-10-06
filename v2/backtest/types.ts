@@ -47,6 +47,11 @@ export interface BacktestConfig {
      * Unset = backtest does not apply ADX (legacy research path).
      */
     minAdx?: number;
+    /**
+     * When true with confirmMode, MOMENTUM uses the same T+2 confirm lag as TREND.
+     * Default/omit = paper today (MOMENTUM next-bar; confirm is TREND-only).
+     */
+    confirmMomentum?: boolean;
   };
   seed: boolean;
 }
