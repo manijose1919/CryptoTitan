@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-06 00:40 UTC — STRONG_UP+confirm+ADX20 n-starve probes (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-strong-maxatr-adx20-9045.ts`, `scripts/edge-strong-confirm-adx20-longwindow.ts`, `docs/reviews/2026-10-06-strong-confirm-adx20-nstarve.md`, CHANGELOG/README
+**Stats baseline reset:** **no** — research only; paper config unchanged.
+
+**What changed:**
+- Soak: ADAUSD STRONG_UP but ATR%~2.7 &gt; max 2.5 (blocked); cohort still 0 post UP-rollback baseline; watchdog kicked (incl. 224s stall).
+- MAX_ATR grid 2.5–2.8 under STRONG_UP+confirm+ADX20: 2.6–2.7 identical to 2.5; 2.75+ hurts OOS PF — **keep MAX 2.5**.
+- Longer windows / scanner minATR=1.0: OOS strong, earlier still fails n or PF — **no promote**.
+
+**Why:**
+Seek n≥10 under paper ADX parity without re-adding UP. Not found this cycle.
+
+**What to monitor / watch for:**
+- Do not raise MAX_ATR for ADA near-misses; do not lower minATR without earlier-PF clear.
+- Next: exit/signal features under STRONG_UP+confirm+ADX20, or wait for natural STRONG_UP+ADX fills.
+
+---
+
 ## 2026-10-05 12:30 UTC — rollback UP (ADX≥20 evidence); ADX block soak log — cursor-cloud
 
 **Commits:** this branch
