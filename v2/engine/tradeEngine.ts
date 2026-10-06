@@ -35,8 +35,7 @@ import {
   closeTrade,
   resolveGatekeeperByEntry,
   getOpenTrades,
-  getOpenTradesByStrategy,
-  getClosedTradesByStrategy,
+  getClosedTrades,
   appendTradeDecision,
 } from '../attribution/attributionStore.ts';
 import { analyzeClosedTrade } from '../attribution/postTradeAnalyzer.ts';
@@ -255,12 +254,12 @@ export function stopV2Engine(): void {
  * Get current engine status snapshot.
  */
 export function getV2Status(): V2EngineStatus {
-  // ISOLATION: filter to TREND only. This is the TREND engine's status — must
-  // not include MOMENTUM, SNIPER_KRAKEN, or SNIPER_CRYPTOCOM trade counts /
-  // P&L. Reports for those go through their own /momentum/status and
-  // /sniper/* endpoints respectively.
-  const openTrades = getOpenTradesByStrategy('TREND');
-  const closedTrades = getClosedTradesByStrategy('TREND', 1000);
+  // Main pipeline status: TREND + MOMENTUM (+ BREAKOUT when enabled) all
+  // enter via runAllStrategies → tradeEngine. 2026-10-06: TREND-only filter
+  // hid the contaminated AVAXUSD MOMENTUM open (health openPositions=0).
+  // Separate engines (sniper/MR) still report via their own status endpoints.
+  const openTrades = getOpenTrades();
+  const closedTrades = getClosedTrades(1000);
   const totalPnlNet = closedTrades.reduce((sum, t) => sum + (t.pnlNet ?? 0), 0);
 
   return {

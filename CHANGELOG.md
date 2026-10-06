@@ -47,25 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
-## 2026-10-06 12:20 UTC — MOMENTUM shares TREND ADX≥20 gate — cursor-cloud
+## 2026-10-06 12:30 UTC — MOMENTUM ADX parity + health open count + re-baseline — cursor-cloud
 
 **Commits:** this branch
-**Files changed:** `v2/engine/strategyRunner.ts`, `v2/backtest/backtestEngine.ts`, `v2/engine/strategyRunner.adxParity.test.ts`, `docs/reviews/2026-10-06-momentum-adx-parity.md`, CHANGELOG/README
+**Files changed:** `v2/engine/strategyRunner.ts`, `v2/backtest/backtestEngine.ts`, `v2/engine/tradeEngine.ts`, `v2/engine/strategyRunner.adxParity.test.ts`, `scripts/edge-strong-adx20-mom-parity-9045.ts`, reviews, CHANGELOG/README
 **Stats baseline reset:** **no** — bugfix; contaminated AVAXUSD MOMENTUM fill excluded from cohort.
 
 **What changed:**
 - Paper soak: AVAXUSD scan-PASS STRONG_UP, TREND ADX-blocked at 15.2, then **MOMENTUM filled** same loop @ $11.67 (~$212) — ADX desync.
-- `strategyRunner` now applies `ADX_THRESHOLDS.TREND_MIN` to MOMENTUM as well as TREND (shared `adxPassedScan`).
-- Backtest MOMENTUM path honors `entryFilters.minAdx` for paper parity.
-- Unit test covers the AVAX-style block and ADX-pass allow path.
+- `strategyRunner` applies `ADX_THRESHOLDS.TREND_MIN` to MOMENTUM as well as TREND; backtest MOMENTUM honors `minAdx`.
+- `getV2Status` counts **all** main-pipeline opens/closes (was TREND-only — hid MOMENTUM AVAX).
+- Re-baseline 90/45 under parity: **anyPromote=false**; MOMENTUM on helps OOS (+3 trades) not earlier; exit/chase knobs still fail n/PF.
 
 **Why:**
-Directional entries must not bypass the ADX ranging gate that TREND already enforces. Contaminated open trade left to natural exit; do not count in post-UP-rollback cohort.
+Directional entries must not bypass the ADX ranging gate. Soak health must show MOMENTUM positions managed by tradeEngine.
 
 **What to monitor / watch for:**
-- No new MOMENTUM (or TREND) fills when soak logs `ADX block` for that ticker.
-- Contaminated AVAX open exits via stop/trail/time-kill; mark PnL as contaminated.
-- Rollback: restore MOMENTUM loop over `passedScan` (not `adxPassedScan`) — not recommended.
+- No new MOMENTUM fills when soak logs `ADX block` for that ticker.
+- Health `openPositions` ≥1 while contaminated AVAX is open.
+- Contaminated AVAX exit PnL — exclude from cohort.
+- Rollback ADX: restore MOMENTUM over `passedScan` — not recommended.
 
 ---
 
