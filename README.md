@@ -71,6 +71,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **ADX parity (2026-10-05):** paper `ADX≥20` was missing from promote-package backtests. With `minAdx=20`, that package **fails** robust 90/45 — keep paper ADX; treat prior clear as optimistic. See [`docs/reviews/2026-10-05-adx-parity-and-sol-exit.md`](docs/reviews/2026-10-05-adx-parity-and-sol-exit.md). **UP rolled back** to STRONG_UP-only after ADX20 stack search (UP trades are the drag; STRONG_UP+confirm PF-positive but n-starved). See [`docs/reviews/2026-10-05-adx20-stack-search.md`](docs/reviews/2026-10-05-adx20-stack-search.md). Follow-up (2026-10-06): MAX_ATR 2.6–2.8 and longer windows still fail n≥10 / earlier PF — keep MAX 2.5 / minATR 1.5. See [`docs/reviews/2026-10-06-strong-confirm-adx20-nstarve.md`](docs/reviews/2026-10-06-strong-confirm-adx20-nstarve.md).
 
+**MOMENTUM ADX fix (2026-10-06):** MOMENTUM skipped the paper ADX gate and filled AVAXUSD while TREND was blocked (ADX 15.2). MOMENTUM now shares `ADX≥20` with TREND. Contaminated open AVAX trade — exclude from cohort. See [`docs/reviews/2026-10-06-momentum-adx-parity.md`](docs/reviews/2026-10-06-momentum-adx-parity.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

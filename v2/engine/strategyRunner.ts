@@ -52,20 +52,40 @@ export function runAllStrategies(
     // Strategy lookups are null-safe (?.) — disabling a strategy by removing
     // its STRATEGY_TIMEFRAMES key is the documented kill switch and must not
     // crash the loop (2026-06-09: BREAKOUT removal did exactly that).
+    //
+    // Shared ADX gate for TREND + MOMENTUM (2026-10-06): MOMENTUM previously
+    // skipped ADX and filled AVAXUSD while TREND was blocked at ADX 15.2.
+    const trendOrMomentum =
+      STRATEGY_TIMEFRAMES.TREND?.includes(tf)
+      || (MOMENTUM_CONFIG.ENABLED && STRATEGY_TIMEFRAMES.MOMENTUM?.includes(tf));
+    const adxBlocked: string[] = [];
+    const adxPassedScan = trendOrMomentum && passedScan.length > 0
+      ? passedScan.filter(scan => {
+          const candles = tfCandles.get(scan.ticker);
+          if (!candles || candles.length < 30) return false;
+          const adxVal = adx(candles);
+          if (adxVal < ADX_THRESHOLDS.TREND_MIN) {
+            adxBlocked.push(`${scan.ticker} ADX ${adxVal.toFixed(1)}<${ADX_THRESHOLDS.TREND_MIN}`);
+            return false;
+          }
+          return true;
+        })
+      : [];
+    // Soak observability: scan-PASS but ADX-blocked is the current dark-path cause.
+    if (adxBlocked.length > 0 && tf === V2_CONFIG.CANDLE_INTERVAL) {
+      const now = Date.now();
+      if (now - _lastAdxBlockLogAt > 5 * 60_000) {
+        _lastAdxBlockLogAt = now;
+        console.log(`[V2] ADX block ${tf}: ${adxBlocked.join('; ')}`);
+      }
+    }
+
     // --- TREND (ADX gate + per-regime timeframe restriction) ---
-    if (STRATEGY_TIMEFRAMES.TREND?.includes(tf) && passedScan.length > 0) {
+    if (STRATEGY_TIMEFRAMES.TREND?.includes(tf) && adxPassedScan.length > 0) {
       // ADX gate: only enter TREND when market is genuinely trending.
       // Root cause of prior losses: EMA regime called UP in ranging conditions.
       const regimeTfRestrict = (V2_CONFIG as any).REGIME_TIMEFRAME_RESTRICT as Record<string, string[]> | undefined;
-      const adxBlocked: string[] = [];
-      const trendPassed = passedScan.filter(scan => {
-        const candles = tfCandles.get(scan.ticker);
-        if (!candles || candles.length < 30) return false;
-        const adxVal = adx(candles);
-        if (adxVal < ADX_THRESHOLDS.TREND_MIN) {
-          adxBlocked.push(`${scan.ticker} ADX ${adxVal.toFixed(1)}<${ADX_THRESHOLDS.TREND_MIN}`);
-          return false;
-        }
+      const trendPassed = adxPassedScan.filter(scan => {
         // 2026-07-21: UP+1h proven loser (n=25, 40% WR, -$1.05/trade).
         // If regime has a timeframe restriction, enforce it.
         if (regimeTfRestrict && scan.regime && regimeTfRestrict[scan.regime]) {
@@ -73,14 +93,6 @@ export function runAllStrategies(
         }
         return true;
       });
-      // Soak observability: scan-PASS but ADX-blocked is the current dark-path cause.
-      if (adxBlocked.length > 0 && tf === V2_CONFIG.CANDLE_INTERVAL) {
-        const now = Date.now();
-        if (now - _lastAdxBlockLogAt > 5 * 60_000) {
-          _lastAdxBlockLogAt = now;
-          console.log(`[V2] ADX block ${tf}: ${adxBlocked.join('; ')}`);
-        }
-      }
       if (trendPassed.length > 0) {
         const trendSignals = generateSignals(trendPassed, tfCandles);
         for (const sig of getPassedSignals(trendSignals)) {
@@ -89,9 +101,9 @@ export function runAllStrategies(
       }
     }
 
-    // --- MOMENTUM (1h, 4h) ---
+    // --- MOMENTUM (1h, 4h) — same ADX≥TREND_MIN gate as TREND ---
     if (MOMENTUM_CONFIG.ENABLED && STRATEGY_TIMEFRAMES.MOMENTUM?.includes(tf)) {
-      for (const scan of passedScan) {
+      for (const scan of adxPassedScan) {
         // Skip if TREND already produced a signal for this ticker+timeframe
         if (results.some(r => r.ticker === scan.ticker && r._timeframe === tf && r._strategy === 'TREND')) continue;
         const candles = tfCandles.get(scan.ticker);

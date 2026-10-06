@@ -542,8 +542,8 @@ function simulateTicker(
       }
     }
 
-    // --- MOMENTUM fallback entry ---
-    if (!trendEntry && MOMENTUM_CONFIG.ENABLED) {
+    // --- MOMENTUM fallback entry (same ADX gate as paper strategyRunner) ---
+    if (!trendEntry && MOMENTUM_CONFIG.ENABLED && adxOk) {
       const momSignal = detectMomentumEntry(window, ticker);
       if (momSignal && momSignal.confidence >= MOMENTUM_CONFIG.MIN_CONFIDENCE) {
         const momPrice = getNextBarEntryPrice(
