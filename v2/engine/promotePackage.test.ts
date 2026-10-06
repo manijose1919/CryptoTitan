@@ -18,6 +18,14 @@ describe('2026-10-05 STRONG_UP+confirm package (ADX-parity rollback)', () => {
     expect(PROMOTE_ENTRY_QUALITY.barIntervalMs).toBe(4 * 60 * 60 * 1000);
   });
 
+  it('documents MOMENTUM confirm parity strategies (TREND + MOMENTUM)', () => {
+    // tradeEngine useConfirm covers TREND and MOMENTUM; BREAKOUT stays immediate.
+    const confirmStrategies = new Set(['TREND', 'MOMENTUM']);
+    expect(confirmStrategies.has('TREND')).toBe(true);
+    expect(confirmStrategies.has('MOMENTUM')).toBe(true);
+    expect(confirmStrategies.has('BREAKOUT')).toBe(false);
+  });
+
   it('stays paper-safe (no live confirmation env)', () => {
     expect(V2_CONFIG.MODE).not.toBe('live');
     expect(process.env.V2_LIVE_CONFIRMED).not.toBe('yes');

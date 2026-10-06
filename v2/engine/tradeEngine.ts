@@ -447,7 +447,7 @@ async function runLoop(): Promise<void> {
     }
 
     // ==============================
-    // Stage 5: Pending confirm advance + execute / stash TREND signals
+    // Stage 5: Pending confirm advance + execute / stash TREND+MOMENTUM signals
     // ==============================
     let executedThisLoop = false;
 
@@ -462,7 +462,9 @@ async function runLoop(): Promise<void> {
 
       if (bestSignal) {
         const strategy = (bestSignal as StrategySignal)._strategy ?? 'TREND';
-        const useConfirm = confirmEnabled() && strategy === 'TREND';
+        // 2026-10-06: MOMENTUM joins confirm (was TREND-only). Research under
+        // ADX20: earlier unchanged, OOS PF/net improved vs next-bar MOMENTUM.
+        const useConfirm = confirmEnabled() && (strategy === 'TREND' || strategy === 'MOMENTUM');
 
         if (useConfirm) {
           stashTrendPending(bestSignal, allCandles);

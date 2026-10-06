@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-06 12:40 UTC — MOMENTUM pending-confirm parity (paper) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/tradeEngine.ts`, `v2/backtest/backtestEngine.ts`, `v2/backtest/types.ts`, `scripts/edge-mom-confirm-parity-9045.ts`, reviews, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Research: under ADX20 stack, MOMENTUM+confirm T+2 matches earlier (n=5 PF0.86) and **improves OOS** (PF 4.19→4.85, net +$15.63→+$18.87) vs next-bar MOMENTUM.
+- Paper `tradeEngine` now pending-confirms **MOMENTUM** as well as TREND.
+- Backtest opt-in `entryFilters.confirmMomentum` (default off = legacy next-bar).
+
+**Why:**
+Hardens the AVAX-style same-loop MOMENTUM fill; fee-aware evidence shows no earlier damage and better OOS. Not a promote (still n-starved).
+
+**What to monitor / watch for:**
+- New MOMENTUM signals log `CONFIRM pending` then arm/enter or reject — never same-loop execute.
+- Contaminated open AVAX (pre-fix) still excluded from cohort.
+- Rollback: `useConfirm && strategy === 'TREND'` only.
+
+---
+
 ## 2026-10-06 12:30 UTC — MOMENTUM ADX parity + health open count + re-baseline — cursor-cloud
 
 **Commits:** this branch
