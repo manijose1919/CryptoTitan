@@ -73,25 +73,29 @@ describe('buildMonitorSummary', () => {
     expect(['WIN', 'LOSS', 'BREAKEVEN']).toContain(s.recentClosed[0].outcome);
   });
 
-  it('cohort KPIs/equityCurve reflect TREND only; recentClosed includes non-TREND rows (reporting contract)', () => {
-    const trendTrades = [
+  it('cohort KPIs use caller-filtered main pipeline; recentClosed can include sniper/contaminated', () => {
+    const mainTrades = [
       trade({ pnlNet: 9, exitTime: 3_000, entryTime: 2_500, strategy: 'TREND' }),
-      trade({ pnlNet: -4, exitTime: 2_000, entryTime: 1_800, strategy: 'TREND' }),
+      trade({ pnlNet: -4, exitTime: 2_000, entryTime: 1_800, strategy: 'MOMENTUM' }),
     ];
     const sniperTrade = trade({
       pnlNet: 1_000, exitTime: 4_000, entryTime: 3_900, strategy: 'SNIPER_KRAKEN',
     });
-    const recentClosedAll = [...trendTrades, sniperTrade];
-    const s = buildMonitorSummary(deps({ cohortClosedTrend: trendTrades, recentClosedAll }));
+    const contaminated = trade({
+      id: 'f69f31c0-ae44-4c4f-b7c2-901bb279b35a',
+      pnlNet: -12.99, exitTime: 5_000, strategy: 'MOMENTUM',
+    });
+    // Caller (attributionAPI) already drops sniper/contaminated from cohortClosedTrend.
+    const recentClosedAll = [...mainTrades, sniperTrade, contaminated];
+    const s = buildMonitorSummary(deps({ cohortClosedTrend: mainTrades, recentClosedAll }));
 
-    // Cohort KPIs and equity curve must NOT be polluted by the sniper trade's huge pnl.
     expect(s.cohort.tradeCount).toBe(2);
     expect(s.cohort.netPnl).toBeCloseTo(5);
     expect(s.equityCurve.map(p => p.cumPnl)).toEqual([-4, 5]);
 
-    // recentClosed (all-strategy table) includes the sniper row.
-    expect(s.recentClosed).toHaveLength(3);
+    expect(s.recentClosed).toHaveLength(4);
     expect(s.recentClosed.some(r => r.strategy === 'SNIPER_KRAKEN')).toBe(true);
+    expect(s.recentClosed.some(r => r.pnlNet === -12.99)).toBe(true);
   });
 
   it('maps open positions from openTrades', () => {

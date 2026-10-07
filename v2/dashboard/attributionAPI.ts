@@ -7,6 +7,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 
 import { buildMonitorSummary } from './monitorSummary.ts';
+import { filterCohortTrades } from './cohortScope.ts';
 import { getOpenTrades, getClosedTrades, getSignalScores, getOpenTradesByStrategy, getClosedTradesByStrategy } from '../attribution/attributionStore.ts';
 import { getScorecard } from '../attribution/signalScorecard.ts';
 import { recomputeAllScores } from '../attribution/postTradeAnalyzer.ts';
@@ -36,6 +37,7 @@ v2Router.get('/status', (_req: Request, res: Response) => {
 // Map a raw v2_trades row to the subset of V2Trade fields buildMonitorSummary reads.
 function mapTradeRow(r: Record<string, unknown>) {
   return {
+    id: (r.id as string) ?? '',
     ticker: r.ticker as string,
     strategy: (r.strategy as string) ?? 'UNKNOWN',
     side: (r.side as string) ?? 'long',
@@ -75,20 +77,23 @@ v2Router.get('/monitor/summary', (_req: Request, res: Response) => {
     const cols = "ticker, strategy, side, entry_price, exit_price, entry_time, exit_time, " +
       "pnl_net, exit_reason, quantity, initial_stop, position_size_usd, current_stop, take_profit_target ";
 
-    // TREND cohort — headline KPIs + equity curve (per standing rule + sniper/day-trading isolation).
-    const trendRows = db
+    // Main-pipeline cohort (TREND+MOMENTUM+BREAKOUT) — headline KPIs + equity.
+    // Sniper/MR excluded. Contaminated soak IDs filtered in filterCohortTrades.
+    const mainRows = db
       .prepare(
-        "SELECT " + cols +
-        "FROM v2_trades WHERE status = 'closed' AND strategy = 'TREND' AND entry_time >= @baselineTs ORDER BY exit_time DESC"
+        "SELECT id, " + cols +
+        "FROM v2_trades WHERE status = 'closed' AND strategy IN ('TREND','MOMENTUM','BREAKOUT') " +
+        "AND entry_time >= @baselineTs ORDER BY exit_time DESC"
       )
       .all({ baselineTs }) as Record<string, unknown>[];
-    const cohortClosedTrend = trendRows.map(mapTradeRow) as any;
+    const cohortClosedTrend = filterCohortTrades(mainRows.map(mapTradeRow) as any);
 
     // All-strategy recent closed — feeds the capped closed-trades table only.
     // LIMIT must stay in sync with RECENT_CLOSED_LIMIT in monitorSummary.ts.
+    // Contaminated trades remain visible here for soak forensics.
     const recentRows = db
       .prepare(
-        "SELECT " + cols +
+        "SELECT id, " + cols +
         "FROM v2_trades WHERE status = 'closed' AND entry_time >= @baselineTs ORDER BY exit_time DESC LIMIT 25"
       )
       .all({ baselineTs }) as Record<string, unknown>[];

@@ -53,13 +53,14 @@ export function runAllStrategies(
     // its STRATEGY_TIMEFRAMES key is the documented kill switch and must not
     // crash the loop (2026-06-09: BREAKOUT removal did exactly that).
     //
-    // Shared ADX gate for TREND + MOMENTUM (2026-10-06): MOMENTUM previously
-    // skipped ADX and filled AVAXUSD while TREND was blocked at ADX 15.2.
-    const trendOrMomentum =
+    // Shared ADX gate for TREND + MOMENTUM + BREAKOUT (2026-10-06/07):
+    // MOMENTUM previously skipped ADX and filled AVAXUSD while TREND was blocked.
+    const needsAdx =
       STRATEGY_TIMEFRAMES.TREND?.includes(tf)
-      || (MOMENTUM_CONFIG.ENABLED && STRATEGY_TIMEFRAMES.MOMENTUM?.includes(tf));
+      || (MOMENTUM_CONFIG.ENABLED && STRATEGY_TIMEFRAMES.MOMENTUM?.includes(tf))
+      || STRATEGY_TIMEFRAMES.BREAKOUT?.includes(tf);
     const adxBlocked: string[] = [];
-    const adxPassedScan = trendOrMomentum && passedScan.length > 0
+    const adxPassedScan = needsAdx && passedScan.length > 0
       ? passedScan.filter(scan => {
           const candles = tfCandles.get(scan.ticker);
           if (!candles || candles.length < 30) return false;
@@ -115,11 +116,14 @@ export function runAllStrategies(
       }
     }
 
-    // --- BREAKOUT (15m, 1h) ---
+    // --- BREAKOUT (1h, 4h) — same ADX≥TREND_MIN + scan-PASS as TREND/MOMENTUM ---
     if (STRATEGY_TIMEFRAMES.BREAKOUT?.includes(tf)) {
-      for (const [ticker, candles] of tfCandles) {
+      for (const scan of adxPassedScan) {
+        if (results.some(r => r.ticker === scan.ticker && r._timeframe === tf)) continue;
+        const candles = tfCandles.get(scan.ticker);
+        if (!candles) continue;
         // Breakout has its own regime check internally
-        const boSignal = detectBreakoutEntry(candles, ticker);
+        const boSignal = detectBreakoutEntry(candles, scan.ticker);
         if (boSignal && boSignal.confidence >= 0.70) {
           results.push({ ...boSignal, _strategy: 'BREAKOUT', _timeframe: tf });
         }

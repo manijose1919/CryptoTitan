@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-07 12:15 UTC — AVAX contaminated exit + main-pipeline cohort + BREAKOUT ADX — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/dashboard/cohortScope.ts`, `attributionAPI.ts`, `monitorSummary*`, `strategyRunner.ts`, reviews, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Contaminated AVAXUSD MOMENTUM closed trailing @ $11.00, **−$12.99** (exclude from promote/cohort KPIs).
+- Monitor cohort now TREND+MOMENTUM+BREAKOUT with `CONTAMINATED_TRADE_IDS` filter (AVAX + SOL skip-bar).
+- BREAKOUT joins shared ADX≥20 + scan-PASS gate (same desync class as MOMENTUM).
+
+**Why:**
+MOMENTUM is first-class in tradeEngine; TREND-only cohort hid pipeline P&L. Contaminated IDs must not enter headline KPIs. BREAKOUT must not bypass ADX.
+
+**What to monitor / watch for:**
+- `/monitor/summary` cohort.tradeCount stays 0 until a clean main-pipeline close.
+- recentClosed still lists AVAX −$12.99.
+- No BREAKOUT/MOMENTUM fill under `ADX block` log lines.
+
+---
+
 ## 2026-10-07 00:15 UTC — F&G wall-clock refresh + confirmMomentum feature probes — cursor-cloud
 
 **Commits:** this branch

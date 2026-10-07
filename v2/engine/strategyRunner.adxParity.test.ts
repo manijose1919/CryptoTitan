@@ -28,6 +28,7 @@ vi.mock('../pipeline/breakoutSignal.ts', () => ({
 import { adx } from '../indicators/indicators.ts';
 import { getPassedTickers, scanMarket } from '../pipeline/marketScanner.ts';
 import { detectMomentumEntry } from '../pipeline/momentumSignal.ts';
+import { detectBreakoutEntry } from '../pipeline/breakoutSignal.ts';
 import { runAllStrategies } from './strategyRunner.ts';
 
 function makeCandles(n: number): Candle[] {
@@ -102,5 +103,26 @@ describe('strategyRunner ADX parity (TREND + MOMENTUM)', () => {
 
     expect(detectMomentumEntry).toHaveBeenCalled();
     expect(signals.some(s => s._strategy === 'MOMENTUM' && s.ticker === ticker)).toBe(true);
+  });
+
+  it('blocks BREAKOUT when ADX < TREND_MIN', () => {
+    vi.mocked(adx).mockReturnValue(ADX_THRESHOLDS.TREND_MIN - 1);
+    vi.mocked(detectBreakoutEntry).mockReturnValue({
+      ticker,
+      passed: true,
+      confidence: 0.8,
+      compositeScore: 80,
+      regime: 'STRONG_UP',
+      side: 'long',
+      reason: 'breakout',
+      signals: { atr: 0.2, atr_percent: 1.8 },
+    } as unknown as SignalResult);
+
+    const candles = makeCandles(Math.max(V2_CONFIG.MIN_CANDLES, 50));
+    const allCandles = new Map([[ticker, new Map([[tf, candles]])]]);
+    const signals = runAllStrategies(allCandles, [ticker]);
+
+    expect(signals.filter(s => s._strategy === 'BREAKOUT')).toHaveLength(0);
+    expect(detectBreakoutEntry).not.toHaveBeenCalled();
   });
 });

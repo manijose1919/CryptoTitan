@@ -11,8 +11,10 @@ const RECENT_CLOSED_LIMIT = 25;
 export interface MonitorDeps {
   status: V2EngineStatus;
   openTrades: V2Trade[];         // ALL strategies — drives open table + open count
-  cohortClosedTrend: V2Trade[];  // TREND only, entry_time >= baseline — drives KPIs + equity curve
-  recentClosedAll: V2Trade[];    // ALL strategies, entry_time >= baseline — drives closed table
+  /** Main-pipeline closed (TREND/MOMENTUM/BREAKOUT), contaminated IDs already removed. */
+  cohortClosedTrend: V2Trade[];
+  /** ALL strategies since baseline — closed table (includes contaminated). */
+  recentClosedAll: V2Trade[];
   baselineTs: number;
   baselineMissing: boolean;
   now: number;
@@ -72,7 +74,7 @@ export function buildMonitorSummary(deps: MonitorDeps): MonitorSummary {
     if (count > topCount) { regime = name; topCount = count; }
   }
 
-  // Cohort stats — TREND only
+  // Cohort stats — main pipeline (caller excludes sniper + contaminated)
   const tradeCount = cohortClosedTrend.length;
   const netPnl = cohortClosedTrend.reduce((s, t) => s + (t.pnlNet ?? 0), 0);
   const wins = cohortClosedTrend.filter(t => (t.pnlNet ?? 0) > 0).length;
