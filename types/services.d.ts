@@ -221,6 +221,8 @@ declare module '*/services/database.js' {
 // ============================================================
 declare module '*/services/fearGreedGate.js' {
   export function initFearGreedGate(): Promise<void>;
+  export function isFearGreedFetchStale(now?: number, maxAgeMs?: number): boolean;
+  export function refreshFearGreedIfStale(now?: number, maxAgeMs?: number): Promise<boolean>;
   export function getPositionMultiplier(): number;
   export function shouldBlockEntry(): { block: boolean; reason: string };
 
@@ -242,6 +244,8 @@ declare module '*/services/fearGreedGate.js' {
 
   const _default: {
     initFearGreedGate: typeof initFearGreedGate;
+    isFearGreedFetchStale: typeof isFearGreedFetchStale;
+    refreshFearGreedIfStale: typeof refreshFearGreedIfStale;
     getPositionMultiplier: typeof getPositionMultiplier;
     shouldBlockEntry: typeof shouldBlockEntry;
     getFearGreedStatus: typeof getFearGreedStatus;

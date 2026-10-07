@@ -281,6 +281,22 @@ async function fetchFearGreedIndex() {
 // ─── Public API (same interface as before) ──────────────────
 
 let _initialized = false;
+/**
+ * Wall-clock staleness check. setInterval alone drifts across VM suspend
+ * (same class as the trading loop watchdog — 2026-10-07 soak).
+ */
+export function isFearGreedFetchStale(now = Date.now(), maxAgeMs = FETCH_INTERVAL_MS) {
+  if (!lastFetchTime) return true;
+  return now - lastFetchTime > maxAgeMs;
+}
+
+/** Refresh Alt.me when wall-clock age exceeds the fetch interval. */
+export async function refreshFearGreedIfStale(now = Date.now(), maxAgeMs = FETCH_INTERVAL_MS) {
+  if (!isFearGreedFetchStale(now, maxAgeMs)) return false;
+  await fetchFearGreedIndex();
+  return true;
+}
+
 export async function initFearGreedGate() {
   if (_initialized) return; // Prevent duplicate intervals on re-init
   _initialized = true;
@@ -324,6 +340,10 @@ export function shouldBlockEntry() {
  * Get current status including source breakdown for dashboard.
  */
 export function getFearGreedStatus() {
+  // Kick a wall-clock refresh after suspend without blocking health handlers.
+  if (isFearGreedFetchStale()) {
+    void refreshFearGreedIfStale();
+  }
   return {
     index: currentIndex,
     classification: currentClassification,
@@ -354,6 +374,8 @@ export function getAlternativeMeRaw() {
 
 export default {
   initFearGreedGate,
+  isFearGreedFetchStale,
+  refreshFearGreedIfStale,
   getPositionMultiplier,
   shouldBlockEntry,
   getFearGreedStatus,

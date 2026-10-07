@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-07 00:15 UTC — F&G wall-clock refresh + confirmMomentum feature probes — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `services/fearGreedGate.js`, `v2/pipeline/riskGate.ts`, `v2/engine/tradeEngine.ts`, `services/fearGreedStale.test.ts`, `scripts/edge-adx20-confirmmom-features-9045.ts`, reviews, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak: AVAX contaminated MOMENTUM still open; ADX block holds; F&G `lastFetchTime` ~11h wall-stale after suspend.
+- Fear & Greed: wall-clock stale refresh (loop + status) — same suspend class as loop watchdog.
+- Research under ADX20+MOM-confirm: feature/exit/chase probes **anyPromote=false** (chase≤0.75 earlier PF 0.89 closest miss).
+
+**Why:**
+Suspend pauses `setInterval`; F&G sizing/blocks must not use day-old Alt.me. Feature search still n-starved — no promote.
+
+**What to monitor / watch for:**
+- Health F&G `lastFetchTime` within ~30m of wall clock after resume.
+- Contaminated AVAX exit — exclude from cohort.
+- Rollback F&G: remove `refreshFearGreedIfNeeded` call / stale helpers.
+
+---
+
 ## 2026-10-06 12:40 UTC — MOMENTUM pending-confirm parity (paper) — cursor-cloud
 
 **Commits:** this branch

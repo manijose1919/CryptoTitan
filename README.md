@@ -73,6 +73,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **MOMENTUM ADX + confirm (2026-10-06):** MOMENTUM skipped the paper ADX gate and filled AVAXUSD while TREND was blocked (ADX 15.2). MOMENTUM now shares `ADX≥20` with TREND **and** pending-confirm (research: earlier flat, OOS PF/net up). Contaminated open AVAX — exclude from cohort. See [`docs/reviews/2026-10-06-momentum-adx-parity.md`](docs/reviews/2026-10-06-momentum-adx-parity.md), [`docs/reviews/2026-10-06-momentum-confirm-parity.md`](docs/reviews/2026-10-06-momentum-confirm-parity.md).
 
+**2026-10-07:** Feature probes under that stack still fail promote (earlier n/PF); chase≤0.75 closest (PF 0.89). Fear & Greed now wall-clock refreshes after VM suspend. See [`docs/reviews/2026-10-07-adx20-confirmmom-features.md`](docs/reviews/2026-10-07-adx20-confirmmom-features.md), [`docs/reviews/2026-10-07-fear-greed-suspend-stale.md`](docs/reviews/2026-10-07-fear-greed-suspend-stale.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

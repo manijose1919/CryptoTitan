@@ -11,7 +11,7 @@ import { applyPaperSlippage, calculateRealizedPnl } from './tradeAccounting.ts';
 
 // Pipeline imports
 import { scanMarket } from '../pipeline/marketScanner.ts';
-import { evaluateRisk, getApproved } from '../pipeline/riskGate.ts';
+import { evaluateRisk, getApproved, refreshFearGreedIfNeeded } from '../pipeline/riskGate.ts';
 import { executeTrade } from '../pipeline/executor.ts';
 import { checkExits } from '../pipeline/exitManager.ts';
 import { fetchAllCandles, getRequiredTimeframes } from './candleManager.ts';
@@ -298,6 +298,9 @@ async function runLoop(): Promise<void> {
   stats.loopCount++;
 
   try {
+    // Wall-clock F&G refresh — setInterval pauses across VM suspend.
+    await refreshFearGreedIfNeeded();
+
     // ==============================
     // Stage 0: Fetch candles (multi-timeframe)
     // ==============================

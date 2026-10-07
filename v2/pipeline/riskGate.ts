@@ -41,6 +41,14 @@ export function getFearGreedBlock(): { block: boolean; reason: string } {
   return _fgModule.shouldBlockEntry?.() ?? { block: false, reason: '' };
 }
 
+/** Wall-clock F&G refresh after VM suspend (setInterval alone drifts). */
+export async function refreshFearGreedIfNeeded(): Promise<void> {
+  await loadFearGreed();
+  if (_fgModule?.refreshFearGreedIfStale) {
+    await _fgModule.refreshFearGreedIfStale();
+  }
+}
+
 // --- Types ---
 
 export interface CircuitBreakerState {
