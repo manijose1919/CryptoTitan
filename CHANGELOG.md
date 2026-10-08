@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-08 12:15 UTC — Regime scarcity diag + scoreBoost dead-letter test — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-regime-scarcity-diag.ts`, `v2/pipeline/timeGate.scoreBoost.test.ts`, `timeGate.ts` comment, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Diagnostic: earlier60 has ~2.5× fewer STRONG_UP+ADX+ATR bars than oos60 (121 vs 307) — structural n ceiling for 60/60.
+- Unit test documents TimeGate `scoreBoost` dead letter under `MIN_CONFIDENCE=0.65`.
+- Soak: watchdog after suspend OK; paper open 0; shorts off / DCA sim; no live paths.
+
+**Why:**
+Explains why best entry packages fail earlier60 n≥10 even with TimeGate off.
+
+**What to monitor / watch for:**
+- Keep locked stack. Do not re-add UP. Wait for STRONG_UP sample growth on soak.
+
+---
+
 ## 2026-10-08 01:35 UTC — Exit knobs under ADX20+confirm (no promote) — cursor-cloud
 
 **Commits:** this branch

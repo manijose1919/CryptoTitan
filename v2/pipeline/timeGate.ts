@@ -54,6 +54,9 @@ export const TIME_GATE_CONFIG = {
   // 21 UTC: 55.2% WR, +$1378/trade training (highest training avg PnL)
   BOOSTED_HOURS: [12, 14, 17, 21] as readonly number[],
   BOOST_AMOUNT: 5, // points to subtract from entry-score threshold (60 -> 55)
+  // 2026-10-08: with MIN_CONFIDENCE=0.65, composite must be ≥65 anyway — scoreBoost
+  // is a dead letter for TREND until confidence also respects the boost (not promoted;
+  // conf loosen failed earlier PF / 60/60 n). See docs/reviews/2026-10-08-score-conf-coherence.md.
 };
 
 export interface TimeGateResult {
