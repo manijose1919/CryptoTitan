@@ -63,7 +63,7 @@ Independent n sources (conf band + overnight) combine on 90/45; earlier60 remain
 
 **What to monitor / watch for:**
 - Keep overnight TimeGate + conf 0.65.
-- Follow-up: anchor + TimeGate-off 60/60; else shelve entry-loosen path until regime sample grows.
+- Follow-up done: anchor + TimeGate-off still **earlier60 n=9** — shelve entry-loosen until sample grows.
 
 ---
 
