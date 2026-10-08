@@ -25,11 +25,13 @@ Earlier after timeGate (110): `scoreFailComposite=79` (all also fail conf) + `sc
 
 ## Quality combos on conf-recovered band
 
-| Ablation | Earlier n/PF | OOS n/PF | Pass |
+| Ablation | Earlier n/PF/net | OOS n/PF | Pass |
 |---|---|---|---|
 | conf0.60 + chase≤0.75 | 9 / 0.61 | 13 / 6.87 | no |
-| conf0.55 + chase≤0.75 | 10 / **0.68** | 13 / 6.87 | no (closest) |
-| conf0.55 + chase≤0.75 + rangeAtr≤2 / conf0.60 same / chase≤0.70 | *(follow-up run)* | | |
+| conf0.55 + chase≤0.75 | 10 / 0.68 / −$5.62 | 13 / 6.87 | no |
+| conf0.55 + chase≤0.70 | 10 / 0.68 | 12 / 6.68 | no (= chase0.75) |
+| conf0.60 + chase≤0.75 + range≤2.0 | 7 / 0.86 | 13 / 6.87 | no |
+| **conf0.55 + chase≤0.75 + range≤2.0** | **8 / 0.965 / −$0.43** | 13 / 6.87 | no — **PF clears, n short by 2** |
 
 ## Decision
-No paper config change. Keep `MIN_CONFIDENCE=0.65` / `MIN_COMPOSITE_SCORE=60`. Chase on the conf-recovered band lifts earlier PF toward ~0.68 but stays below 0.9 — do not loosen conf alone.
+No paper config change yet. Keep live `MIN_CONFIDENCE=0.65`. Closest structural miss is conf0.55+chase0.75+range≤2.0 (earlier PF 0.965, n=8). Neighborhood probe next (`edge-conf-range-neighborhood-9045`) before any promote/stress.
