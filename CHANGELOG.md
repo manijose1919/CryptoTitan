@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-08 01:00 UTC — Anchor×overnight strongest 90/45, fails 60/60 n — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-conf-range-neighborhood-9045.ts`, `scripts/edge-anchor-overnight-9045.ts`, reviews, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- conf+range neighborhood: range≤2.0 is a PF cliff (0.965@n=8 → 0.84@n=9).
+- Anchor (conf0.55+chase0.75+range2) × overnight unblock: **best 90/45** (earlier PF 1.92 n=17 / OOS PF 3.96) but **60/60 earlier n=8** — not promoted.
+- No paper trading-config change.
+
+**Why:**
+Independent n sources (conf band + overnight) combine on 90/45; earlier60 remains structurally n-starved under STRONG_UP+ADX20+confirm.
+
+**What to monitor / watch for:**
+- Keep overnight TimeGate + conf 0.65.
+- Follow-up: anchor + TimeGate-off 60/60; else shelve entry-loosen path until regime sample grows.
+
+---
+
 ## 2026-10-08 00:45 UTC — Score/conf coherence under ADX20+confirm (no promote) — cursor-cloud
 
 **Commits:** this branch
