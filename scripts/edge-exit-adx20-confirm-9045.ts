@@ -133,7 +133,6 @@ const ABLATIONS: Ablation[] = [
     },
   },
   {
-  {
     id: 'sl_atr_12',
     label: 'slAtrMult 1.5→1.2',
     apply: () => {
