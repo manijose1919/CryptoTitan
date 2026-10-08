@@ -79,6 +79,7 @@ const PAPER_FILTERS: BacktestConfig['entryFilters'] = {
 type Ablation = {
   id: string;
   label: string;
+  entryFilters?: BacktestConfig['entryFilters'];
   apply: () => void;
 };
 
@@ -117,6 +118,54 @@ const ABLATIONS: Ablation[] = [
       (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.55;
     },
   },
+  {
+    id: 'conf_060_chase_075',
+    label: 'conf0.60 + chase≤0.75 (n recover + quality)',
+    entryFilters: { ...PAPER_FILTERS, maxSignalCloseLocation: 0.75 },
+    apply: () => {
+      (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.6;
+    },
+  },
+  {
+    id: 'conf_055_chase_075',
+    label: 'conf0.55 + chase≤0.75',
+    entryFilters: { ...PAPER_FILTERS, maxSignalCloseLocation: 0.75 },
+    apply: () => {
+      (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.55;
+    },
+  },
+  {
+    id: 'conf_055_chase_075_range2',
+    label: 'conf0.55 + chase≤0.75 + rangeAtr≤2.0',
+    entryFilters: {
+      ...PAPER_FILTERS,
+      maxSignalCloseLocation: 0.75,
+      maxSignalRangeAtrMult: 2.0,
+    },
+    apply: () => {
+      (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.55;
+    },
+  },
+  {
+    id: 'conf_060_chase_075_range2',
+    label: 'conf0.60 + chase≤0.75 + rangeAtr≤2.0',
+    entryFilters: {
+      ...PAPER_FILTERS,
+      maxSignalCloseLocation: 0.75,
+      maxSignalRangeAtrMult: 2.0,
+    },
+    apply: () => {
+      (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.6;
+    },
+  },
+  {
+    id: 'conf_055_chase_070',
+    label: 'conf0.55 + chase≤0.70',
+    entryFilters: { ...PAPER_FILTERS, maxSignalCloseLocation: 0.7 },
+    apply: () => {
+      (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.55;
+    },
+  },
 ];
 
 async function runWindow(label: string, days: number, end: Date, ab: Ablation) {
@@ -138,7 +187,7 @@ async function runWindow(label: string, days: number, end: Date, ab: Ablation) {
       feeRoundTrip: V2_CONFIG.FEE_ROUND_TRIP_TAKER,
       slippagePerSide: V2_CONFIG.PAPER_SLIPPAGE_PER_SIDE,
       barSequence: 'pessimistic',
-      entryFilters: { ...PAPER_FILTERS },
+      entryFilters: { ...(ab.entryFilters ?? PAPER_FILTERS) },
       seed: false,
     };
     console.log(`\n>>> ${label} | ${startDate.toISOString().slice(0, 10)}→${end.toISOString().slice(0, 10)}`);

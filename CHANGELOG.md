@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-08 00:45 UTC — Score/conf coherence under ADX20+confirm (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-score-conf-coherence-9045.ts`, `scripts/edge-funnel-adx20-9045.ts`, reviews, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Confirmed `MIN_CONFIDENCE=0.65` binds TREND entries at composite≥65; `MIN_COMPOSITE_SCORE=60` and TimeGate `scoreBoost` are dead letters under current stack.
+- conf→0.60 recovers earlier n to 10 and lifts OOS, but earlier PF stays ~0.47 — **not promoted**.
+- Follow-up combos (conf0.60/0.55 + chase≤0.75) running.
+
+**Why:**
+Funnel −94 “score/conf” bars were mostly confidence-bound, not score60.
+
+**What to monitor / watch for:**
+- Keep conf 0.65 / score 60. Do not loosen conf alone.
+- Combo quality filters or earlier time_kill autopsy next.
+
+---
+
 ## 2026-10-08 00:30 UTC — Filter funnel + TimeGate overnight stress (no promote) — cursor-cloud
 
 **Commits:** this branch
@@ -63,7 +83,7 @@ n-starve diagnosis; candidate looked PF-strong on 90/45 but fails robust earlier
 
 **What to monitor / watch for:**
 - Paper stays STRONG_UP-only + ADX20 + confirm + overnight TimeGate.
-- Next research: score vs `MIN_CONFIDENCE=0.65` coherence (scoreBoost may be dead letter).
+- Score/conf coherence follow-up (see entry above).
 
 ---
 

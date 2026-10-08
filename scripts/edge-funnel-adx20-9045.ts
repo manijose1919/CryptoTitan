@@ -41,6 +41,8 @@ function emptyFunnel(): Funnel {
     adxOk: 0,
     timeGate: 0,
     scoreOk: 0,
+    scoreFailComposite: 0,
+    scoreFailConfidence: 0,
     chaseOk: 0,
     confirmOk: 0,
     entryEligible: 0,
@@ -118,11 +120,15 @@ async function funnelWindow(label: string, days: number, end: Date): Promise<Fun
         compositeScore -= Math.round((excess / maxExcess) * V2_CONFIG.TREND_MATURITY_MAX_PENALTY);
       }
       const confidence = compositeScore / 100;
-      if (
-        compositeScore < V2_CONFIG.MIN_COMPOSITE_SCORE - tg.scoreBoost
-        || confidence < V2_CONFIG.MIN_CONFIDENCE
-      ) {
-        dropReasons['score'] = (dropReasons['score'] ?? 0) + 1;
+      const scoreFloor = V2_CONFIG.MIN_COMPOSITE_SCORE - tg.scoreBoost;
+      const failComposite = compositeScore < scoreFloor;
+      const failConfidence = confidence < V2_CONFIG.MIN_CONFIDENCE;
+      if (failComposite || failConfidence) {
+        if (failComposite && failConfidence) dropReasons['score+conf'] = (dropReasons['score+conf'] ?? 0) + 1;
+        else if (failComposite) dropReasons['score_composite'] = (dropReasons['score_composite'] ?? 0) + 1;
+        else dropReasons['score_confidence'] = (dropReasons['score_confidence'] ?? 0) + 1;
+        if (failComposite) f.scoreFailComposite++;
+        if (failConfidence) f.scoreFailConfidence++;
         continue;
       }
       f.scoreOk++;
