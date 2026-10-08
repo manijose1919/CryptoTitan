@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * TimeGate ablation under STRONG_UP+confirm+ADX20 paper stack (research only).
+ * Score vs confidence gate coherence under ADX20+confirm paper stack.
  *
- * Funnel autopsy: after STRONG_UP+ATR+ADX, timeGate is the largest drop
- * (~158/268 earlier bars). Hypothesis: overnight/Friday hard-blocks over-trim
- * the already-thin ADX20+confirm stack.
+ * Funnel: after timeGate, score/conf drops ~94 earlier bars. Feature probes showed
+ * MIN_COMPOSITE_SCORE 55/65 identical to live — hypothesized because MIN_CONFIDENCE=0.65
+ * requires composite≥65, making score threshold and TimeGate scoreBoost dead letters.
  *
  * Protocol: 90/45 CAD10 4h 0.52% RT 5bps pessimistic + confirmMomentum.
  * Bar: OOS PF>1.1 & net>0 & earlier PF≥0.9 & earlier n≥10.
  *
  * Usage:
  *   DATA_DIR=/tmp/cryptotitan-edge-research \
- *     node --experimental-strip-types scripts/edge-timegate-adx20-9045.ts
+ *     node --experimental-strip-types scripts/edge-score-conf-coherence-9045.ts
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { initializeDatabase } from '../services/database.js';
@@ -19,37 +19,34 @@ import { initV2Tables } from '../v2/attribution/attributionStore.ts';
 import { V2_CONFIG, MOMENTUM_CONFIG, ADX_THRESHOLDS } from '../v2/engine/config.ts';
 import { runBacktest } from '../v2/backtest/backtestEngine.ts';
 import type { BacktestConfig, BacktestResult } from '../v2/backtest/types.ts';
-import { TIME_GATE_CONFIG } from '../v2/pipeline/timeGate.ts';
 
 const CAD10 = [...V2_CONFIG.SCAN_TICKERS];
 const MIN_ADX = ADX_THRESHOLDS.TREND_MIN;
 
-const PAPER_FILTERS: BacktestConfig['entryFilters'] = {
-  confirmMode: 'bullish_close',
-  maxSignalCloseLocation: 0.8,
-  minAdx: MIN_ADX,
-  minSignalAtrPercent: 1.5,
-  confirmMomentum: true,
+type Snap = {
+  regimes: readonly string[];
+  maxAtr: number;
+  minScore: number;
+  minConf: number;
+  momEnabled: boolean;
 };
 
-type GateSnap = {
-  ENABLED: boolean;
-  BLOCKED_HOURS: readonly number[];
-  BLOCKED_DAYS: readonly number[];
-};
-
-function snapGate(): GateSnap {
+function snap(): Snap {
   return {
-    ENABLED: TIME_GATE_CONFIG.ENABLED,
-    BLOCKED_HOURS: [...TIME_GATE_CONFIG.BLOCKED_HOURS],
-    BLOCKED_DAYS: [...TIME_GATE_CONFIG.BLOCKED_DAYS],
+    regimes: [...V2_CONFIG.ALLOWED_REGIMES],
+    maxAtr: V2_CONFIG.MAX_ATR_PERCENT,
+    minScore: V2_CONFIG.MIN_COMPOSITE_SCORE,
+    minConf: V2_CONFIG.MIN_CONFIDENCE,
+    momEnabled: MOMENTUM_CONFIG.ENABLED,
   };
 }
 
-function restoreGate(s: GateSnap): void {
-  (TIME_GATE_CONFIG as { ENABLED: boolean }).ENABLED = s.ENABLED;
-  (TIME_GATE_CONFIG as { BLOCKED_HOURS: readonly number[] }).BLOCKED_HOURS = s.BLOCKED_HOURS;
-  (TIME_GATE_CONFIG as { BLOCKED_DAYS: readonly number[] }).BLOCKED_DAYS = s.BLOCKED_DAYS;
+function restore(s: Snap): void {
+  (V2_CONFIG as { ALLOWED_REGIMES: readonly string[] }).ALLOWED_REGIMES = s.regimes;
+  (V2_CONFIG as { MAX_ATR_PERCENT: number }).MAX_ATR_PERCENT = s.maxAtr;
+  (V2_CONFIG as { MIN_COMPOSITE_SCORE: number }).MIN_COMPOSITE_SCORE = s.minScore;
+  (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = s.minConf;
+  (MOMENTUM_CONFIG as { ENABLED: boolean }).ENABLED = s.momEnabled;
 }
 
 function summarize(result: BacktestResult) {
@@ -71,6 +68,14 @@ function meetsBar(
   return (oos.pf ?? 0) > 1.1 && oos.net > 0 && (earlier.pf ?? 0) >= 0.9 && earlier.trades >= 10;
 }
 
+const PAPER_FILTERS: BacktestConfig['entryFilters'] = {
+  confirmMode: 'bullish_close',
+  maxSignalCloseLocation: 0.8,
+  minAdx: MIN_ADX,
+  minSignalAtrPercent: 1.5,
+  confirmMomentum: true,
+};
+
 type Ablation = {
   id: string;
   label: string;
@@ -79,43 +84,43 @@ type Ablation = {
 
 const ABLATIONS: Ablation[] = [
   {
-    id: 'paper_live_timegate',
-    label: 'Paper live timeGate (control)',
+    id: 'paper_live',
+    label: 'Paper live (score60 + conf0.65)',
     apply: () => {},
   },
   {
-    id: 'timegate_off',
-    label: 'TIME_GATE_CONFIG.ENABLED=false',
+    id: 'conf_060_align',
+    label: 'MIN_CONFIDENCE 0.65→0.60 (align with score60)',
     apply: () => {
-      (TIME_GATE_CONFIG as { ENABLED: boolean }).ENABLED = false;
+      (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.6;
     },
   },
   {
-    id: 'no_overnight_block',
-    label: 'Unblock 0-7 UTC; keep 13/20 + Friday',
+    id: 'conf_055_scoreboost_parity',
+    label: 'MIN_CONFIDENCE→0.55 (parity with score60−boost5)',
     apply: () => {
-      (TIME_GATE_CONFIG as { BLOCKED_HOURS: readonly number[] }).BLOCKED_HOURS = [13, 20];
+      (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.55;
     },
   },
   {
-    id: 'no_friday_block',
-    label: 'Unblock Friday; keep hour blocks',
+    id: 'score_65_conf_065',
+    label: 'MIN_COMPOSITE_SCORE→65 (match confidence binding)',
     apply: () => {
-      (TIME_GATE_CONFIG as { BLOCKED_DAYS: readonly number[] }).BLOCKED_DAYS = [];
+      (V2_CONFIG as { MIN_COMPOSITE_SCORE: number }).MIN_COMPOSITE_SCORE = 65;
     },
   },
   {
-    id: 'hours_13_20_only',
-    label: 'Only block 13+20 UTC (drop overnight+Friday)',
+    id: 'score_55_conf_055',
+    label: 'score55 + conf0.55 (joint loosen — labeled)',
     apply: () => {
-      (TIME_GATE_CONFIG as { BLOCKED_HOURS: readonly number[] }).BLOCKED_HOURS = [13, 20];
-      (TIME_GATE_CONFIG as { BLOCKED_DAYS: readonly number[] }).BLOCKED_DAYS = [];
+      (V2_CONFIG as { MIN_COMPOSITE_SCORE: number }).MIN_COMPOSITE_SCORE = 55;
+      (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.55;
     },
   },
 ];
 
 async function runWindow(label: string, days: number, end: Date, ab: Ablation) {
-  const gate = snapGate();
+  const baseline = snap();
   try {
     (V2_CONFIG as { ALLOWED_REGIMES: readonly string[] }).ALLOWED_REGIMES = ['STRONG_UP'];
     (V2_CONFIG as { MAX_ATR_PERCENT: number }).MAX_ATR_PERCENT = 2.5;
@@ -140,11 +145,11 @@ async function runWindow(label: string, days: number, end: Date, ab: Ablation) {
     const result = await runBacktest(config);
     const summary = summarize(result);
     console.log(
-      `    trades=${summary.trades} WR=${(summary.winRate * 100).toFixed(1)}% net=$${summary.net} PF=${summary.pf}`,
+      `    n=${summary.trades} WR=${summary.winRate} net=$${summary.net} PF=${summary.pf}`,
     );
     return summary;
   } finally {
-    restoreGate(gate);
+    restore(baseline);
   }
 }
 
@@ -153,46 +158,50 @@ async function main(): Promise<void> {
   mkdirSync('/cursor/stores/self/artifacts', { recursive: true });
   initializeDatabase();
   initV2Tables();
+
   const endRecent = new Date();
   endRecent.setUTCHours(0, 0, 0, 0);
   const endEarlier90 = new Date(endRecent.getTime() - 45 * 86400000);
 
   console.log('╔══════════════════════════════════════════════════════════╗');
-  console.log('║  TimeGate ablation under ADX20+confirm stack (90/45)   ║');
+  console.log('║  Score/conf coherence under ADX20+confirm (90/45)      ║');
   console.log('╚══════════════════════════════════════════════════════════╝');
 
   const rows = [];
   for (const ab of ABLATIONS) {
-    const earlier = await runWindow(`${ab.id}/earlier90`, 90, endEarlier90, ab);
-    const oos = await runWindow(`${ab.id}/oos45`, 45, endRecent, ab);
-    const row = {
+    const earlier90 = await runWindow(`${ab.id}/earlier90`, 90, endEarlier90, ab);
+    const oos45 = await runWindow(`${ab.id}/oos45`, 45, endRecent, ab);
+    rows.push({
       id: ab.id,
       label: ab.label,
-      earlier90: earlier,
-      oos45: oos,
-      meetsPromotionBar: meetsBar(oos, earlier),
-    };
-    rows.push(row);
-    console.log(
-      `== ${ab.id}: pass=${row.meetsPromotionBar} | OOS PF=${oos.pf} n=${oos.trades} | earlier PF=${earlier.pf} n=${earlier.trades}`,
-    );
+      earlier90,
+      oos45,
+      meetsPromotionBar: meetsBar(oos45, earlier90),
+    });
   }
 
   const out = {
     generatedAt: new Date().toISOString(),
     hypothesis:
-      'Funnel shows timeGate as the largest post-STRONG_UP+ADX drop; relaxing overnight/Friday blocks may clear n≥10 under confirm+ADX20.',
+      'MIN_CONFIDENCE=0.65 binds entries at composite≥65; MIN_COMPOSITE_SCORE=60 and TimeGate scoreBoost are ineffective. Aligning conf→0.60 may recover funnel score/conf n without changing score.',
     protocol: {
       windows: '90d earlier / 45d OOS',
       promotionBar: 'OOS PF>1.1 & net>0 & earlier PF>=0.9 & earlier n>=10',
-      fixed: `STRONG_UP MAX2.5 minAdx=${MIN_ADX} confirmMomentum chase0.8 minATR1.5`,
+      fixed: 'STRONG_UP MAX2.5 minAdx=20 confirmMomentum chase0.8 minATR1.5',
     },
     rows,
     anyPromote: rows.some((r) => r.meetsPromotionBar),
   };
-  writeFileSync('/opt/cursor/artifacts/edge-timegate-adx20-9045.json', JSON.stringify(out, null, 2));
-  writeFileSync('/cursor/stores/self/artifacts/edge-timegate-adx20-9045.json', JSON.stringify(out, null, 2));
-  console.log(`\nWrote edge-timegate-adx20-9045.json anyPromote=${out.anyPromote}`);
+
+  writeFileSync('/opt/cursor/artifacts/edge-score-conf-coherence-9045.json', JSON.stringify(out, null, 2));
+  writeFileSync('/cursor/stores/self/artifacts/edge-score-conf-coherence-9045.json', JSON.stringify(out, null, 2));
+  console.log('\nWrote edge-score-conf-coherence-9045.json');
+  console.log(`anyPromote=${out.anyPromote}`);
+  for (const r of rows) {
+    console.log(
+      `${r.meetsPromotionBar ? 'PASS' : 'fail'} ${r.id} earlier n=${r.earlier90.trades} PF=${r.earlier90.pf} | oos n=${r.oos45.trades} PF=${r.oos45.pf}`,
+    );
+  }
 }
 
 main().catch((e) => {

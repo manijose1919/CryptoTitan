@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-08 00:30 UTC — Filter funnel + TimeGate overnight stress (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-funnel-adx20-9045.ts`, `scripts/edge-timegate-adx20-9045.ts`, `scripts/edge-timegate-overnight-stress.ts`, reviews, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Funnel autopsy under paper ADX20+confirm: after STRONG_UP, timeGate (−158) then score/conf (−94) dominate attrition; ADX only −14.
+- TimeGate ablation: overnight 0–7 UTC is the binding block (Friday irrelevant). Unblocking overnight clears 90/45 but **fails 60/60** (earlier n=6).
+- **No paper TimeGate config change** — keep `BLOCKED_HOURS=[0..7,13,20]` + Friday.
+
+**Why:**
+n-starve diagnosis; candidate looked PF-strong on 90/45 but fails robust earlier-n bar.
+
+**What to monitor / watch for:**
+- Paper stays STRONG_UP-only + ADX20 + confirm + overnight TimeGate.
+- Next research: score vs `MIN_CONFIDENCE=0.65` coherence (scoreBoost may be dead letter).
+
+---
+
 ## 2026-10-07 12:15 UTC — AVAX contaminated exit + main-pipeline cohort + BREAKOUT ADX — cursor-cloud
 
 **Commits:** this branch
