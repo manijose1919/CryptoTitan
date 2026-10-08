@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-08 01:35 UTC — Exit knobs under ADX20+confirm (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-exit-adx20-confirm-9045.ts`, review, CHANGELOG
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Re-probed TREND timeKill / trail / SL under full ADX20+confirm stack.
+- Longer time-kill worsens earlier (stops eat the leash). trailGiveback→0.02 tiny OOS lift only.
+- **No exit-config promote.** n remains 6 — exits cannot clear n≥10.
+
+**Why:**
+Earlier drag looked time_kill-shaped; data says longer leash → deeper stops under this stack.
+
+**What to monitor / watch for:**
+- Keep current TREND exits. Soak locked stack; wait for STRONG_UP sample.
+
+---
+
 ## 2026-10-08 01:00 UTC — Anchor×overnight strongest 90/45, fails 60/60 n — cursor-cloud
 
 **Commits:** this branch
