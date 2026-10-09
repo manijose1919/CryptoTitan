@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-09 00:15 UTC — Bearish lastEvalAt + BREAKOUT ADX/confirm re-baseline — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `bearishServices.ts` (+test), `scripts/edge-breakout-adx-confirm-9045.ts`, reviews, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Bearish status now exposes `stats.lastEvalAt` (wall clock); `lastEvalTime` remains duration ms.
+- BREAKOUT re-baseline under ADX≥20 ± confirm/chase: **all fail** (OOS PF≤0.13). No BREAKOUT promote.
+- Paper restarted on `:3137` to load lastEvalAt; mode=paper, open 0, shorts off / DCA sim.
+
+**Why:**
+Soak hygiene (lastEvalTime looked “stale” at 0). Alternate-family research while TREND stack is n-starved / risk-off.
+
+**What to monitor / watch for:**
+- `lastEvalAt` advances on bearish evals. Do not enable BREAKOUT confirm.
+- Keep locked TREND/MOMENTUM stack; wait for STRONG_UP sample.
+
+---
+
 ## 2026-10-08 12:15 UTC — Regime scarcity diag + scoreBoost dead-letter test — cursor-cloud
 
 **Commits:** this branch
