@@ -75,25 +75,47 @@ function fromKrakenWsPair(krakenPair) {
 // CONNECTION MANAGEMENT
 // ============================================
 
+/** True when a close/error event belongs to a socket that is no longer current.
+ *  Exported for unit tests — post-suspend reconnect races used to let a stale
+ *  close handler clear `connected` / heartbeat on the replacement socket. */
+export function isStaleSocketEvent(currentWs, eventWs) {
+    return eventWs != null && currentWs != null && eventWs !== currentWs;
+}
+
+function disposeSocket(socket, { silent = false } = {}) {
+    if (!socket) return;
+    try { socket.removeAllListeners(); } catch { /* */ }
+    try {
+        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+            socket.terminate();
+        } else {
+            socket.close();
+        }
+    } catch { /* already closed */ }
+    if (!silent) { /* reserved for future diagnostics */ }
+}
+
 function connect() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
         return;
     }
 
-    // Clean up old socket listeners to prevent memory leaks on reconnect
+    // Clean up old socket listeners to prevent memory leaks / stale close races
     if (ws) {
-        ws.removeAllListeners();
-        try { ws.close(); } catch (e) { /* already closed */ }
+        disposeSocket(ws, { silent: true });
         ws = null;
     }
 
     try {
-        ws = new WebSocket(WS_URL);
+        const socket = new WebSocket(WS_URL);
+        ws = socket;
 
-        ws.on('open', () => {
+        socket.on('open', () => {
+            if (ws !== socket) return; // superseded
             connected = true;
             reconnectAttempts = 0;
             lastMessageTime = Date.now();
+            _heartbeatWarned = false;
             console.log('[KrakenWS] Connected to Kraken market stream');
 
             // Start heartbeat checker
@@ -108,7 +130,8 @@ function connect() {
             if (onConnectCallback) onConnectCallback();
         });
 
-        ws.on('message', (data) => {
+        socket.on('message', (data) => {
+            if (ws !== socket) return;
             lastMessageTime = Date.now();
             try {
                 const msg = JSON.parse(data.toString());
@@ -118,14 +141,22 @@ function connect() {
             }
         });
 
-        ws.on('close', (code, reason) => {
+        socket.on('close', (code) => {
+            // Ignore close from a socket we already replaced (VM-suspend reconnect race).
+            if (isStaleSocketEvent(ws, socket)) {
+                console.log(`[KrakenWS] Ignoring stale close (code: ${code}) from replaced socket`);
+                return;
+            }
             connected = false;
             console.log(`[KrakenWS] Disconnected (code: ${code}). Reconnecting...`);
             clearInterval(heartbeatTimer);
+            heartbeatTimer = null;
+            if (ws === socket) ws = null;
             scheduleReconnect();
         });
 
-        ws.on('error', (error) => {
+        socket.on('error', (error) => {
+            if (isStaleSocketEvent(ws, socket)) return;
             console.error(`[KrakenWS] Error: ${error.message}`);
             // 'close' event fires after error
         });
@@ -162,14 +193,16 @@ function checkHeartbeat() {
     if (!connected) return;
     const elapsed = Date.now() - lastMessageTime;
     if (elapsed > HEARTBEAT_TIMEOUT_MS + HEARTBEAT_GRACE_MS) {
-        // Grace period exceeded — force reconnect
+        // Grace period exceeded — force reconnect. Detach listeners before
+        // terminate so the dying socket's close cannot clobber a successor.
         console.warn(`[KrakenWS] Dead for ${(elapsed / 1000).toFixed(0)}s — forcing reconnect`);
         _heartbeatWarned = false;
-        if (ws) {
-            ws.close();
-            ws = null;
-        }
+        const dying = ws;
+        ws = null;
         connected = false;
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+        disposeSocket(dying, { silent: true });
         scheduleReconnect();
     } else if (elapsed > HEARTBEAT_TIMEOUT_MS && !_heartbeatWarned) {
         // First warning — connection may be flaky but give it grace period
