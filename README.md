@@ -77,6 +77,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-08:** Filter funnel under ADX20+confirm — after STRONG_UP, **timeGate** then **score/conf** dominate n-starve (ADX only −14). Overnight TimeGate unblock clears 90/45 but **fails 60/60** (earlier n=6) — **not promoted**. Score/conf: `MIN_CONFIDENCE=0.65` binds (scoreBoost dead letter). Closest package **conf0.55+chase0.75+range≤2.0+overnight** clears 90/45 strongly (earlier PF 1.92 n=17) but **fails 60/60** (earlier n=8; TG-off n=9) — **not promoted**. Exit re-probe: longer time-kill hurts earlier — keep exits. **Regime scarcity:** earlier60 has ~2.5× fewer STRONG_UP+ADX+ATR bars than oos60 (121 vs 307) — structural 60/60 n ceiling. See [`docs/reviews/2026-10-08-regime-scarcity.md`](docs/reviews/2026-10-08-regime-scarcity.md) and sibling `2026-10-08-*.md` reviews.
 
+**2026-10-09:** Bearish status adds `lastEvalAt` (wall clock; `lastEvalTime` stays duration ms). BREAKOUT under ADX≥20 ± confirm/chase **fails** fee-aware 90/45 (OOS PF≤0.13) — no promote. See [`docs/reviews/2026-10-09-bearish-lastevalat.md`](docs/reviews/2026-10-09-bearish-lastevalat.md), [`docs/reviews/2026-10-09-breakout-adx-confirm.md`](docs/reviews/2026-10-09-breakout-adx-confirm.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
