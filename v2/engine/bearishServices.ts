@@ -83,7 +83,10 @@ const bearishStats = {
   dcaBuys: 0,
   arbScans: 0,
   stakingChecks: 0,
+  /** Duration of last evaluate() in ms (often 0 when work is sub-ms). */
   lastEvalTime: 0,
+  /** Wall-clock ms when last evaluate() finished — for soak/stale monitors. */
+  lastEvalAt: 0,
 };
 
 // ─── Short Position Persistence ────────────────────────────
@@ -529,6 +532,7 @@ async function evaluate(): Promise<void> {
     await evaluateFearDCA();
 
     bearishStats.lastEvalTime = Date.now() - start;
+    bearishStats.lastEvalAt = Date.now();
 
     // Log summary every 10 evaluations
     if (bearishStats.evalCount % 10 === 1) {

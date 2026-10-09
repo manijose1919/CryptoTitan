@@ -15,4 +15,12 @@ describe('bearish side-service safety', () => {
     expect(status.staking.enabled).toBe(false);
     expect(status.arbitrage.enabled).toBe(false);
   });
+
+  it('exposes lastEvalAt wall clock distinct from lastEvalTime duration ms', () => {
+    const status = getBearishStatus();
+    expect(status.stats).toHaveProperty('lastEvalTime');
+    expect(status.stats).toHaveProperty('lastEvalAt');
+    expect(typeof status.stats.lastEvalTime).toBe('number');
+    expect(typeof status.stats.lastEvalAt).toBe('number');
+  });
 });
