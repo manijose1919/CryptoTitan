@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-09 12:15 UTC — Kraken WS stale-close race after suspend — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `services/krakenWebsocketService.js`, `tests/krakenWebsocketService.staleClose.test.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Ignore close/message/error from replaced sockets; dispose with removeAllListeners+terminate.
+- Heartbeat dead-kill no longer lets a stale close clobber the successor connection.
+- Paper `:3137` restarted to load fix. mode=paper, open 0, shorts off / DCA sim.
+
+**Why:**
+Post-suspend logs showed Connected → immediate 1006; soak flapped WS after every watchdog kick.
+
+**What to monitor / watch for:**
+- After next suspend: reconnect should stay up (no immediate 1006 after “System status online”).
+- Rollback: revert `krakenWebsocketService.js` dispose/stale guards.
+
+---
+
 ## 2026-10-09 00:15 UTC — Bearish lastEvalAt + BREAKOUT ADX/confirm re-baseline — cursor-cloud
 
 **Commits:** this branch
