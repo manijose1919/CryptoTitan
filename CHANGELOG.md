@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-10 00:15 UTC — WS suspend fix validated; watchdog benign-skip + status fields — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `loopWatchdog.ts` (+test), `tradeEngine.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Validated Kraken WS fix on ~12h suspend: Connected → online **without** immediate 1006.
+- Watchdog: detect benign post-suspend kick skip (recovery loop already in flight); clearer log.
+- Status: `wsConnected` + `pendingConfirmCount` on `/api/health` v2 snapshot.
+- Paper restarted to load status/watchdog changes. mode=paper, open 0.
+
+**Why:**
+Confirm soak resilience; reduce confusing “kick then skipped” logs after suspend.
+
+**What to monitor / watch for:**
+- Next suspend: no Connected→1006; optional `recovery loop already in flight` log.
+- `wsConnected: true` when market stream is up.
+
+---
+
 ## 2026-10-09 12:15 UTC — Kraken WS stale-close race after suspend — cursor-cloud
 
 **Commits:** this branch
