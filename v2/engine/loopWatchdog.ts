@@ -37,3 +37,27 @@ export function shouldForceUnlockLoop(input: StuckMutexInput): boolean {
   if (input.loopStartedAt <= 0) return false;
   return input.now - input.loopStartedAt > input.maxLoopMs;
 }
+
+export interface BenignKickSkipInput {
+  loopInProgress: boolean;
+  loopStartedAt: number;
+  lastLoopAt: number;
+  now: number;
+  /** Treat loopStartedAt younger than this as an in-flight recovery loop (default 2 min). */
+  maxFreshLoopMs?: number;
+}
+
+/**
+ * After VM suspend, setInterval often starts a recovery runLoop before the
+ * watchdog kick. lastLoopAt is still stale, but loopInProgress is freshly set —
+ * a second kick then logs "Loop skipped". That race is benign.
+ */
+export function isBenignStaleKickSkip(input: BenignKickSkipInput): boolean {
+  if (!input.loopInProgress) return false;
+  if (input.loopStartedAt <= 0) return false;
+  if (input.lastLoopAt <= 0) return false;
+  const freshMs = input.maxFreshLoopMs ?? 120_000;
+  const loopAge = input.now - input.loopStartedAt;
+  const lastLoopAge = input.now - input.lastLoopAt;
+  return loopAge <= freshMs && lastLoopAge > freshMs;
+}

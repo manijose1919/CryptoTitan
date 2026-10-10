@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { shouldForceUnlockLoop, shouldKickStaleLoop } from './loopWatchdog.ts';
+import {
+  isBenignStaleKickSkip,
+  shouldForceUnlockLoop,
+  shouldKickStaleLoop,
+} from './loopWatchdog.ts';
 
 describe('loopWatchdog', () => {
   const interval = 60_000;
@@ -57,6 +61,34 @@ describe('loopWatchdog', () => {
         loopStartedAt: 1_000_000,
         now: 1_000_000 + 60_000,
         maxLoopMs: 5 * 60_000,
+      }),
+    ).toBe(false);
+  });
+
+  it('detects benign post-suspend kick skip (recovery loop already in flight)', () => {
+    const now = 100_000_000;
+    expect(
+      isBenignStaleKickSkip({
+        loopInProgress: true,
+        loopStartedAt: now - 5_000, // started 5s ago
+        lastLoopAt: now - 40_000_000, // still pre-suspend stale
+        now,
+      }),
+    ).toBe(true);
+    expect(
+      isBenignStaleKickSkip({
+        loopInProgress: true,
+        loopStartedAt: now - 5_000,
+        lastLoopAt: now - 10_000, // lastLoop also fresh
+        now,
+      }),
+    ).toBe(false);
+    expect(
+      isBenignStaleKickSkip({
+        loopInProgress: false,
+        loopStartedAt: 0,
+        lastLoopAt: now - 40_000_000,
+        now,
       }),
     ).toBe(false);
   });

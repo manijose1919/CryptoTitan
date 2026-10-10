@@ -25,7 +25,12 @@ import {
   type EntryQualityConfig,
   type PendingConfirmEntry,
 } from '../pipeline/pendingConfirmEntry.ts';
-import { shouldForceUnlockLoop, shouldKickStaleLoop } from './loopWatchdog.ts';
+import {
+  isBenignStaleKickSkip,
+  shouldForceUnlockLoop,
+  shouldKickStaleLoop,
+} from './loopWatchdog.ts';
+import { isConnected as isKrakenWsConnected } from '../../services/krakenWebsocketService.js';
 import type { RiskResult } from '../pipeline/types.ts';
 
 // Attribution imports
@@ -124,6 +129,10 @@ export interface V2EngineStatus {
   totalTrades: number;
   portfolioCash: number;
   totalPnlNet: number;
+  /** Kraken market WS connected (soak / post-suspend). */
+  wsConnected?: boolean;
+  /** Pending TREND/MOMENTUM confirm entries awaiting T+1. */
+  pendingConfirmCount?: number;
 }
 
 // --- Telegram Helper ---
@@ -226,10 +235,23 @@ export function startV2Engine(): void {
         staleMult: LOOP_STALE_MULT,
       })
     ) {
-      console.warn(
-        `[V2] Watchdog kick: lastLoopAt age ${Math.round((now - stats.lastLoopAt) / 1000)}s — running loop`,
-      );
-      void runLoop();
+      if (
+        isBenignStaleKickSkip({
+          loopInProgress,
+          loopStartedAt,
+          lastLoopAt: stats.lastLoopAt,
+          now,
+        })
+      ) {
+        console.log(
+          `[V2] Watchdog: recovery loop already in flight (started ${Math.round((now - loopStartedAt) / 1000)}s ago) — skip kick`,
+        );
+      } else {
+        console.warn(
+          `[V2] Watchdog kick: lastLoopAt age ${Math.round((now - stats.lastLoopAt) / 1000)}s — running loop`,
+        );
+        void runLoop();
+      }
     }
   }, Math.min(30_000, V2_CONFIG.BOT_LOOP_INTERVAL_MS));
 }
@@ -278,6 +300,8 @@ export function getV2Status(): V2EngineStatus {
     totalPnlNet,
     lastScanReasons: stats.lastScanReasons,
     candleCounts: stats.candleCounts,
+    wsConnected: isKrakenWsConnected(),
+    pendingConfirmCount: _pendingConfirms.size,
   };
 }
 
