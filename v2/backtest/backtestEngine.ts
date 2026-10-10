@@ -112,6 +112,14 @@ export function passesConfirmBar(
   return { ok: true };
 }
 
+/**
+ * Paper `strategyRunner` only evaluates MOMENTUM on scan-PASS + ADX.
+ * Backtest must use the same conjunction (not ADX alone).
+ */
+export function isMomentumScanEligible(scanPassed: boolean, adxOk: boolean): boolean {
+  return Boolean(scanPassed && adxOk);
+}
+
 /** Optional ATR%-band gate on the signal (research). */
 export function passesSignalAtrBand(
   atrPercent: number,
@@ -542,12 +550,21 @@ function simulateTicker(
       }
     }
 
-    // --- MOMENTUM fallback entry (same ADX gate as paper strategyRunner) ---
+    // --- MOMENTUM fallback entry (paper strategyRunner parity) ---
+    // Paper only evaluates MOMENTUM on scan-PASS + ADX≥TREND_MIN (strategyRunner).
+    // Previously this path checked ADX alone and bypassed MAX_ATR / regime / volume
+    // scan gates — inflating research OOS (e.g. DOT atr% 3.3 under MAX 2.5).
     // confirmMomentum+confirmMode → T+2 confirm parity with TREND (research).
-    // Default: next-bar fill (paper today — confirm is TREND-only in tradeEngine).
-    if (!trendEntry && MOMENTUM_CONFIG.ENABLED && adxOk) {
+    if (!trendEntry && MOMENTUM_CONFIG.ENABLED && isMomentumScanEligible(!!passed, adxOk)) {
       const momSignal = detectMomentumEntry(window, ticker);
-      if (momSignal && momSignal.confidence >= MOMENTUM_CONFIG.MIN_CONFIDENCE) {
+      const momAtrPct = momSignal ? (momSignal.signals.atr_percent as number) : 0;
+      const momAtrBandOk = !config.entryFilters
+        || passesSignalAtrBand(momAtrPct, config.entryFilters).ok;
+      if (
+        momSignal
+        && momSignal.confidence >= MOMENTUM_CONFIG.MIN_CONFIDENCE
+        && momAtrBandOk
+      ) {
         const confirmMode = config.entryFilters?.confirmMode;
         const useMomConfirm = !!(confirmMode && config.entryFilters?.confirmMomentum);
         const signalBar = window[window.length - 1]!;
@@ -574,7 +591,6 @@ function simulateTicker(
           );
           if (momPrice != null) {
             const momAtr = momSignal.signals.atr as number;
-            const momAtrPct = momSignal.signals.atr_percent as number;
             const momSwingLow = momSignal.signals.mom_swing_low as number | undefined;
             let momSl = momPrice - momAtr * 2.0;
             if (momSwingLow != null && momSwingLow > 0 && momSwingLow < momPrice) {

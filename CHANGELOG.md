@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-10 12:20 UTC — Backtest MOMENTUM requires scan PASS (paper parity) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `backtestEngine.ts`, `backtestEngine.momentumScanParity.test.ts`, autopsy script, reviews, CHANGELOG/README
+**Stats baseline reset:** **no** (paper unchanged)
+
+**What changed:**
+- Backtest MOMENTUM now requires scan PASS + ADX (same as `strategyRunner`), plus research ATR band when filters set.
+- Locked-stack re-baseline: OOS45 n 6→4 / PF 4.5→2.02; OOS60 n 11→9 / PF 6.8→4.3. Earlier unchanged. Still **fails** promote.
+- Autopsy: earlier90 drag = BNB stop (−$9.48) + 2× time_kill (−$5.18); OOS all trailing.
+
+**Why:**
+Research was counting MOMENTUM fills with atr% > MAX_ATR (DOT 3.3) that paper can never take — optimistic OOS.
+
+**What to monitor / watch for:**
+- Prefer post-fix baselines for promote decisions.
+- Paper already correct; no runtime config change.
+
+---
+
 ## 2026-10-10 12:10 UTC — loopInProgress status + locked-stack baseline refresh — cursor-cloud
 
 **Commits:** this branch
