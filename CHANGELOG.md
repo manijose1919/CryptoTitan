@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-10 12:10 UTC — loopInProgress status + locked-stack baseline refresh — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `tradeEngine.ts`, `scripts/edge-locked-stack-baseline-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- `/api/health` v2 status exposes `loopInProgress` + `loopStartedAt` (watchdog / soak monitors).
+- Refreshed fee-aware locked-stack baseline (90/45 + 60/60). Both splits **fail** promotion bar: earlier90 PF 0.455 n=6; earlier60 n=3 (OOS still strong).
+- Paper `:3137` running with line-buffered logs (`stdbuf -oL -eL`); open 0, risk-off.
+
+**Why:**
+Calendar-roll snapshot under the locked stack; confirm n-starve still binds earlier windows. Status fields make post-suspend loop races observable without log archaeology.
+
+**What to monitor / watch for:**
+- Health: `loopInProgress=false` between loops; `wsConnected=true`; `pendingConfirmCount` when confirms arm.
+- Do not promote until earlier n≥10 clears with PF≥0.9 on a fee-aware split.
+
+---
+
 ## 2026-10-10 00:15 UTC — WS suspend fix validated; watchdog benign-skip + status fields — cursor-cloud
 
 **Commits:** this branch

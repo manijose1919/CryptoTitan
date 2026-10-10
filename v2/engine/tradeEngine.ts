@@ -133,6 +133,10 @@ export interface V2EngineStatus {
   wsConnected?: boolean;
   /** Pending TREND/MOMENTUM confirm entries awaiting T+1. */
   pendingConfirmCount?: number;
+  /** True while runLoop holds the concurrency mutex. */
+  loopInProgress?: boolean;
+  /** Wall-clock ms when the current loop started (0 if idle). */
+  loopStartedAt?: number;
 }
 
 // --- Telegram Helper ---
@@ -302,6 +306,8 @@ export function getV2Status(): V2EngineStatus {
     candleCounts: stats.candleCounts,
     wsConnected: isKrakenWsConnected(),
     pendingConfirmCount: _pendingConfirms.size,
+    loopInProgress,
+    loopStartedAt,
   };
 }
 

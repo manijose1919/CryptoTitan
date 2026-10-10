@@ -79,7 +79,7 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-09:** Bearish status adds `lastEvalAt` (wall clock; `lastEvalTime` stays duration ms). BREAKOUT under ADX≥20 ± confirm/chase **fails** fee-aware 90/45 (OOS PF≤0.13) — no promote. Kraken WS: ignore stale close from replaced sockets after suspend (Connected→immediate 1006 race). See [`docs/reviews/2026-10-09-bearish-lastevalat.md`](docs/reviews/2026-10-09-bearish-lastevalat.md), [`docs/reviews/2026-10-09-breakout-adx-confirm.md`](docs/reviews/2026-10-09-breakout-adx-confirm.md), [`docs/reviews/2026-10-09-kraken-ws-stale-close.md`](docs/reviews/2026-10-09-kraken-ws-stale-close.md).
 
-**2026-10-10:** WS suspend fix **validated** on soak (no Connected→1006). Watchdog logs benign recovery-loop skip; health exposes `wsConnected` + `pendingConfirmCount`. See [`docs/reviews/2026-10-10-ws-fix-validated.md`](docs/reviews/2026-10-10-ws-fix-validated.md).
+**2026-10-10:** WS suspend fix **validated** on soak (no Connected→1006). Watchdog logs benign recovery-loop skip; health exposes `wsConnected` + `pendingConfirmCount` + `loopInProgress`/`loopStartedAt`. Locked-stack baseline refresh still **fails** promote (earlier90 PF 0.455 n=6; earlier60 n=3) while OOS stays strong — n-starve unchanged. See [`docs/reviews/2026-10-10-ws-fix-validated.md`](docs/reviews/2026-10-10-ws-fix-validated.md), [`docs/reviews/2026-10-10-locked-stack-baseline.md`](docs/reviews/2026-10-10-locked-stack-baseline.md).
 
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
