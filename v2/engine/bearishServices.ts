@@ -7,6 +7,7 @@
 import { V2_CONFIG } from './config.ts';
 import { isLiveTradingConfirmed } from './tradeMode.ts';
 import { describeBearishBootSummary } from './bearishBootSummary.ts';
+import { shouldKickStaleLoop } from './loopWatchdog.ts';
 import { getDb } from '../../services/database.js';
 import { shortSellingEngine } from '../../core/shortSellingEngine.ts';
 import { stakingEngine } from '../../core/stakingEngine.ts';
@@ -59,9 +60,12 @@ const BEARISH_CONFIG = {
 // ─── State ─────────────────────────────────────────────────
 
 let timer: ReturnType<typeof setInterval> | null = null;
+let watchdogTimer: ReturnType<typeof setInterval> | null = null;
 let exchange: ExchangeAdapter | null = null;
 let running = false;
 let evalInProgress = false;
+/** Wall-clock when evalInProgress became true (0 if idle). */
+let evalStartedAt = 0;
 
 // DCA tracking
 // M21: in-memory map; seeded from v2_dca_buys on first evaluateDCA call so
@@ -520,6 +524,7 @@ function startArbitrage(): void {
 async function evaluate(): Promise<void> {
   if (evalInProgress) return;
   evalInProgress = true;
+  evalStartedAt = Date.now();
 
   const start = Date.now();
   bearishStats.evalCount++;
@@ -548,6 +553,33 @@ async function evaluate(): Promise<void> {
     console.error(`[Bearish] Eval error: ${err.message}`);
   } finally {
     evalInProgress = false;
+    evalStartedAt = 0;
+  }
+}
+
+/**
+ * VM suspend freezes Node timers; lastEvalAt is wall-clock so soak monitors
+ * show staleness until setInterval catches up. Kick evaluate() like tradeEngine.
+ */
+function bearishWatchdogTick(): void {
+  if (!running) return;
+  const now = Date.now();
+  if (
+    shouldKickStaleLoop({
+      isRunning: running,
+      lastLoopAt: bearishStats.lastEvalAt,
+      now,
+      loopIntervalMs: BEARISH_CONFIG.EVAL_INTERVAL_MS,
+    })
+  ) {
+    if (evalInProgress && evalStartedAt > 0 && now - evalStartedAt < 120_000) {
+      // Recovery eval already in flight — same benign race as main loop.
+      return;
+    }
+    console.log(
+      `[Bearish] Watchdog kick: lastEvalAt age ${Math.round((now - bearishStats.lastEvalAt) / 1000)}s — running eval`,
+    );
+    void evaluate();
   }
 }
 
@@ -570,6 +602,8 @@ export function startBearishServices(): void {
   // Start bearish evaluation loop (shorts + DCA)
   evaluate(); // Run immediately
   timer = setInterval(() => evaluate(), BEARISH_CONFIG.EVAL_INTERVAL_MS);
+  // Wall-clock watchdog: catch up after VM suspend (setInterval may lag).
+  watchdogTimer = setInterval(bearishWatchdogTick, 30_000);
 
   console.log(
     `[Bearish] Services started (${describeBearishBootSummary(BEARISH_CONFIG)}; ` +
@@ -581,6 +615,10 @@ export function stopBearishServices(): void {
   if (timer) {
     clearInterval(timer);
     timer = null;
+  }
+  if (watchdogTimer) {
+    clearInterval(watchdogTimer);
+    watchdogTimer = null;
   }
   running = false;
   stakingEngine.stop();

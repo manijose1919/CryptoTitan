@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-11 12:15 UTC — Bearish wall-clock watchdog after suspend — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `bearishServices.ts`, `bearishServices.test.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak midday: ~41875s suspend — WS reconnect clean (no 1006); main watchdog kicked loop.
+- Bearish eval now has a 30s wall-clock watchdog (3× eval interval) so `lastEvalAt` recovers after VM suspend without waiting solely on frozen `setInterval`.
+- Paper `:3137` restarted to load change. DOT ATR near-miss still rejected (MAX 2.5).
+
+**Why:**
+Main loop already had suspend recovery; bearish side services lagged on the same host freeze.
+
+**What to monitor / watch for:**
+- After next suspend: `[Bearish] Watchdog kick: lastEvalAt age …s` if interval is late; `lastEvalAt` age &lt; ~3 min in health.
+
+---
+
 ## 2026-10-11 00:15 UTC — Soak resume OK; conf-tighten fails n bar — cursor-cloud
 
 **Commits:** this branch
