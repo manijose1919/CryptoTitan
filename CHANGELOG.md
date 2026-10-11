@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-11 00:15 UTC — Soak resume OK; conf-tighten fails n bar — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-conf-tighten-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak: ~11.5h suspend — WS reconnect clean (no 1006); benign watchdog skip; DOTUSD STRONG_UP blocked at ATR% 2.70 (keep MAX 2.5).
+- Tighten-only conf/score ablation under scan-parity stack: conf0.68 flips earlier PF to 1.76 but n=4 / OOS thins — **no promote**.
+
+**Why:**
+Autopsy pointed at low-conf BNB stop; test whether stricter confidence helps without loosening risk.
+
+**What to monitor / watch for:**
+- Next STRONG_UP + ATR≤2.5 coincidence for first post-cohort fill.
+- Do not raise MAX_ATR for DOT/ADA near-misses.
+
+---
+
 ## 2026-10-10 12:20 UTC — Backtest MOMENTUM requires scan PASS (paper parity) — cursor-cloud
 
 **Commits:** this branch

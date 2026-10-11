@@ -81,6 +81,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-10:** WS suspend fix **validated** on soak (no Connected→1006). Watchdog logs benign recovery-loop skip; health exposes `wsConnected` + `pendingConfirmCount` + `loopInProgress`/`loopStartedAt`. Locked-stack baseline still **fails** promote (earlier90 PF 0.455 n=6; earlier60 n=3). **Backtest MOMENTUM** now requires scan PASS (was bypassing MAX_ATR — optimistic OOS); honest OOS45 PF≈2.0 n=4. See [`docs/reviews/2026-10-10-ws-fix-validated.md`](docs/reviews/2026-10-10-ws-fix-validated.md), [`docs/reviews/2026-10-10-locked-stack-baseline.md`](docs/reviews/2026-10-10-locked-stack-baseline.md), [`docs/reviews/2026-10-10-momentum-scan-parity.md`](docs/reviews/2026-10-10-momentum-scan-parity.md).
 
+**2026-10-11:** Another suspend recovery clean (no 1006). DOTUSD STRONG_UP rejected at ATR% 2.70 — keep MAX 2.5. Conf-tighten (0.68/0.70) lifts earlier PF but fails n / thins OOS — **not promoted**. See [`docs/reviews/2026-10-11-conf-tighten-soak.md`](docs/reviews/2026-10-11-conf-tighten-soak.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
