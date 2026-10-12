@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-12 12:15 UTC — Dual watchdog #2; MOMENTUM 4h noop under stack — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-mom-onoff-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak midday: ~41440s suspend — V2 + Bearish watchdog kicks again; WS clean (no 1006).
+- MOMENTUM on/off under scan-parity locked stack: **identical** results; momTrades=0 on 4h — prior OOS lift was pre-parity artifact.
+- Dashboard health 200; no config change.
+
+**Why:**
+Confirm MOMENTUM’s research contribution after requiring scan PASS; re-validate suspend recovery.
+
+**What to monitor / watch for:**
+- First in-band STRONG_UP fill (4h or 1h). MOMENTUM may still fire on 1h in paper; 4h research baselines treat it as inert under current gates.
+
+---
+
 ## 2026-10-12 00:20 UTC — Bearish watchdog validated; ATR-cooldown shelved — cursor-cloud
 
 **Commits:** this branch
