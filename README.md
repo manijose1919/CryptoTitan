@@ -83,6 +83,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-11:** Suspend recoveries clean (no 1006). DOTUSD ATR%~2.7 rejected — keep MAX 2.5. Conf-tighten (0.68/0.70) lifts earlier PF but fails n — **not promoted**. Bearish side services gain a wall-clock eval watchdog (parity with main loop). See [`docs/reviews/2026-10-11-conf-tighten-soak.md`](docs/reviews/2026-10-11-conf-tighten-soak.md), [`docs/reviews/2026-10-11-bearish-watchdog.md`](docs/reviews/2026-10-11-bearish-watchdog.md).
 
+**2026-10-12:** Bearish watchdog **validated** on soak (`Watchdog kick` after ~42750s). ATR-cooldown path for high-ATR STRONG_UP near-misses yields **0** confirm-eligible cool-ins — shelved; keep MAX 2.5. See [`docs/reviews/2026-10-12-bearish-watchdog-validated.md`](docs/reviews/2026-10-12-bearish-watchdog-validated.md), [`docs/reviews/2026-10-12-atr-cooldown-diag.md`](docs/reviews/2026-10-12-atr-cooldown-diag.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

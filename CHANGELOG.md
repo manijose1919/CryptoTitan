@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-12 00:20 UTC — Bearish watchdog validated; ATR-cooldown shelved — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-atr-cooldown-diag.ts`, reviews, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~42750s suspend: `[Bearish] Watchdog kick` fired; WS reconnect clean (no 1006); paper healthy.
+- ATR-cooldown diag: high-ATR STRONG_UP near-misses rarely cool into band; **0** cool+confirm-eligible on earlier90/oos45 — shelved (do not raise MAX_ATR).
+- Locked-stack baseline refresh still fails promote (earlier n/PF).
+
+**Why:**
+Validate new bearish suspend recovery; test delayed-entry alternative to MAX_ATR loosen for DOT-style near-misses.
+
+**What to monitor / watch for:**
+- Next suspend: both V2 and Bearish watchdog kicks; no Connected→1006.
+- First in-band STRONG_UP fill under locked stack.
+
+---
+
 ## 2026-10-11 12:15 UTC — Bearish wall-clock watchdog after suspend — cursor-cloud
 
 **Commits:** this branch
