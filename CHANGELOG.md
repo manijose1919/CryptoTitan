@@ -47,14 +47,14 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
-## 2026-10-13 00:55 UTC — Dual watchdog #3; volume-floor research (no promote) — cursor-cloud
+## 2026-10-13 12:05 UTC — Dual watchdog #4; volume-floor research (no promote) — cursor-cloud
 
 **Commits:** this branch
 **Files changed:** `backtestEngine.ts` (`passesMinVolumeRatio`), `types.ts`, tests, `edge-entry-feature-autopsy-9045.ts`, `edge-vol-floor-9045.ts`, review, CHANGELOG/README
 **Stats baseline reset:** **no**
 
 **What changed:**
-- Soak: ~41925s suspend — V2 + Bearish watchdog kicks; WS clean. Deep STRONG_DOWN risk-off; F&G Neutral.
+- Soak: overnight ~41925s + midday ~38847s suspends — V2 + Bearish watchdog kicks both times; WS clean. Deep STRONG_DOWN; F&G Neutral.
 - Feature autopsy: earlier BNB stop had volume_ratio 0.16.
 - Research `minVolumeRatio` gate: vol≥0.3 lifts earlier PF to 0.81 but fails n/PF bar; vol≥0.5 hurts OOS — **not promoted** (not wired to paper).
 
