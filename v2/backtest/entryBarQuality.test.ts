@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { passesEntryBarQuality, passesSignalAtrBand } from './backtestEngine.ts';
+import { passesEntryBarQuality, passesMinVolumeRatio, passesSignalAtrBand } from './backtestEngine.ts';
 import type { Candle } from '../pipeline/types.ts';
 
 function bar( partial: Partial<Candle> & Pick<Candle, 'open' | 'high' | 'low' | 'close'>): Candle {
@@ -43,5 +43,22 @@ describe('passesSignalAtrBand', () => {
 
   it('allows in-band atr%', () => {
     expect(passesSignalAtrBand(2.0, { minSignalAtrPercent: 1.5, maxSignalAtrPercent: 2.5 }).ok).toBe(true);
+  });
+});
+
+describe('passesMinVolumeRatio', () => {
+  it('rejects below min volume_ratio', () => {
+    const r = passesMinVolumeRatio(0.16, { minVolumeRatio: 0.3 });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/volume_ratio/);
+  });
+
+  it('allows at/above min', () => {
+    expect(passesMinVolumeRatio(0.5, { minVolumeRatio: 0.3 }).ok).toBe(true);
+    expect(passesMinVolumeRatio(0.3, { minVolumeRatio: 0.3 }).ok).toBe(true);
+  });
+
+  it('no-ops when unset', () => {
+    expect(passesMinVolumeRatio(0.01, {}).ok).toBe(true);
   });
 });

@@ -52,6 +52,8 @@ export interface BacktestConfig {
      * Default/omit = paper today (MOMENTUM next-bar; confirm is TREND-only).
      */
     confirmMomentum?: boolean;
+    /** Reject if signal volume_ratio is below this (research tighten). */
+    minVolumeRatio?: number;
   };
   seed: boolean;
 }

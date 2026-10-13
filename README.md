@@ -85,6 +85,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-12:** Bearish + V2 watchdogs **validated** twice on soak (no Connected→1006). ATR-cooldown shelved (0 confirm-eligible cool-ins). After scan-parity, MOMENTUM adds **0** 4h trades under the locked stack (on/off identical) — keep enabled for paper/1h, do not credit 4h OOS to MOMENTUM. See [`docs/reviews/2026-10-12-bearish-watchdog-validated.md`](docs/reviews/2026-10-12-bearish-watchdog-validated.md), [`docs/reviews/2026-10-12-atr-cooldown-diag.md`](docs/reviews/2026-10-12-atr-cooldown-diag.md), [`docs/reviews/2026-10-12-mom-onoff-soak.md`](docs/reviews/2026-10-12-mom-onoff-soak.md).
 
+**2026-10-13:** Dual watchdogs validated again (~41925s). Feature autopsy → BNB stop at volume_ratio 0.16; research `minVolumeRatio≥0.3` lifts earlier PF to 0.81 but fails promote (n/PF); not wired to paper. Shorts remain off in STRONG_DOWN. See [`docs/reviews/2026-10-13-vol-floor-soak.md`](docs/reviews/2026-10-13-vol-floor-soak.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

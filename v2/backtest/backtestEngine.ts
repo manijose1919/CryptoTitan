@@ -134,6 +134,20 @@ export function passesSignalAtrBand(
   return { ok: true };
 }
 
+/** Optional volume_ratio floor on the signal (research tighten). */
+export function passesMinVolumeRatio(
+  volumeRatio: number,
+  filters: NonNullable<BacktestConfig['entryFilters']>,
+): { ok: boolean; reason?: string } {
+  if (filters.minVolumeRatio != null && volumeRatio < filters.minVolumeRatio) {
+    return {
+      ok: false,
+      reason: `volume_ratio ${volumeRatio.toFixed(3)} < min ${filters.minVolumeRatio}`,
+    };
+  }
+  return { ok: true };
+}
+
 /** True once the fill bar is reached (guards pre-entry exit marks). */
 export function isPositionLiveOnBar(barIndex: number, entryBar: number): boolean {
   return barIndex >= entryBar;
@@ -485,9 +499,11 @@ function simulateTicker(
         let entryQualityOk = true;
         if (config.entryFilters) {
           const signalBar = window[window.length - 1]!;
+          const volRatio = signals.volume_ratio as number;
           entryQualityOk =
             passesEntryBarQuality(signalBar, atrValue, config.entryFilters, 'long').ok
-            && passesSignalAtrBand(atrPercent, config.entryFilters).ok;
+            && passesSignalAtrBand(atrPercent, config.entryFilters).ok
+            && passesMinVolumeRatio(volRatio, config.entryFilters).ok;
         }
         if (entryQualityOk) {
           const confirmMode = config.entryFilters?.confirmMode;
@@ -558,12 +574,16 @@ function simulateTicker(
     if (!trendEntry && MOMENTUM_CONFIG.ENABLED && isMomentumScanEligible(!!passed, adxOk)) {
       const momSignal = detectMomentumEntry(window, ticker);
       const momAtrPct = momSignal ? (momSignal.signals.atr_percent as number) : 0;
+      const momVol = momSignal ? (momSignal.signals.volume_ratio as number) : 0;
       const momAtrBandOk = !config.entryFilters
         || passesSignalAtrBand(momAtrPct, config.entryFilters).ok;
+      const momVolOk = !config.entryFilters
+        || passesMinVolumeRatio(momVol, config.entryFilters).ok;
       if (
         momSignal
         && momSignal.confidence >= MOMENTUM_CONFIG.MIN_CONFIDENCE
         && momAtrBandOk
+        && momVolOk
       ) {
         const confirmMode = config.entryFilters?.confirmMode;
         const useMomConfirm = !!(confirmMode && config.entryFilters?.confirmMomentum);
