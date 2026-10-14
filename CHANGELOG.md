@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-14 00:15 UTC — Dual watchdog #5; tighten-combo fails n — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-tighten-combo-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~42313s suspend: V2 + Bearish watchdog kicks; WS clean (no 1006). Risk-off all DOWN.
+- Locked baseline refresh still fails promote (OOS45 n=3 PF 1.35).
+- Combo vol≥0.3 + conf≥0.68: earlier PF clears (~1.65) but n drops to 3 — **no promote**.
+
+**Why:**
+Test whether stacking directional tighten knobs clears the bar; n-starve remains binding.
+
+**What to monitor / watch for:**
+- Next STRONG_UP in-band fill. Do not stack more tighten gates expecting n≥10.
+
+---
+
 ## 2026-10-13 12:05 UTC — Dual watchdog #4; volume-floor research (no promote) — cursor-cloud
 
 **Commits:** this branch
