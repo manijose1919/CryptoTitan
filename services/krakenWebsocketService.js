@@ -45,6 +45,22 @@ const latestPriceTimes = new Map();
 
 // Track last message time for heartbeat detection
 let lastMessageTime = 0;
+/** Wall-clock ms of last successful `open` (null if never connected this process). */
+let lastConnectedAt = null;
+
+/**
+ * Pure snapshot for /api/health — exported for unit tests.
+ * @param {{ connected: boolean, lastConnectedAt: number|null, lastMessageTime: number, now?: number }} s
+ */
+export function buildWsHealthSnapshot(s) {
+    const now = s.now ?? Date.now();
+    return {
+        connected: !!s.connected,
+        lastConnectedAt: s.lastConnectedAt ?? null,
+        lastMessageAgeMs:
+            s.lastMessageTime > 0 ? Math.max(0, now - s.lastMessageTime) : null,
+    };
+}
 
 function setLatestPrice(ticker, price) {
     if (!(price > 0)) return;
@@ -115,6 +131,7 @@ function connect() {
             connected = true;
             reconnectAttempts = 0;
             lastMessageTime = Date.now();
+            lastConnectedAt = lastMessageTime;
             _heartbeatWarned = false;
             console.log('[KrakenWS] Connected to Kraken market stream');
 
@@ -457,7 +474,11 @@ export function isConnected() {
  */
 export function getWebSocketStatus() {
     return {
-        connected,
+        ...buildWsHealthSnapshot({
+            connected,
+            lastConnectedAt,
+            lastMessageTime,
+        }),
         exchange: 'kraken',
         subscriptions: subscribedTickers.size,
         tickers: [...realtimeCandles.keys()],
@@ -484,5 +505,7 @@ export function closeWebSocket() {
     subscribedTickers.clear();
     realtimeCandles.clear();
     latestPrices.clear();
+    latestPriceTimes.clear();
+    lastMessageTime = 0;
     console.log('[KrakenWS] Connection closed');
 }

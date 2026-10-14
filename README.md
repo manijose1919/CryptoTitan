@@ -89,6 +89,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-14:** Dual watchdogs #5 (~42313s). Tighten combo (vol≥0.3 + conf≥0.68) clears earlier PF but n→3 — **not promoted**; shelve further tighten stacking. See [`docs/reviews/2026-10-14-tighten-combo-soak.md`](docs/reviews/2026-10-14-tighten-combo-soak.md).
 
+**2026-10-14 midday:** Funnel refresh confirms TimeGate + score/conf as n compressors after SU; WS health age fields on `/api/health`. See [`docs/reviews/2026-10-14-funnel-refresh-ws-health.md`](docs/reviews/2026-10-14-funnel-refresh-ws-health.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

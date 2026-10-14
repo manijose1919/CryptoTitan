@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-14 12:20 UTC — Funnel refresh; WS health age fields — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `services/krakenWebsocketService.js`, `v2/engine/tradeEngine.ts`, tests, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Midday soak: ~41812s suspend → V2 interval-wake + benign skip; Bearish interval-wake; WS clean (no 1006).
+- Funnel/scarcity/autopsy refresh: earlier entryEligible still 6; TimeGate + score/conf remain binding compressors. Candle cache 0 gaps.
+- Health now exposes `wsLastConnectedAt` / `wsLastMessageAgeMs`; `closeWebSocket` clears price timestamps.
+
+**Why:**
+Soak observability after suspend reconnects; document that n-starve is still score/TimeGate after SU (not candle gaps).
+
+**What to monitor / watch for:**
+- New health fields after paper restart. No trading-config change.
+
+---
+
 ## 2026-10-14 00:15 UTC — Dual watchdog #5; tighten-combo fails n — cursor-cloud
 
 **Commits:** this branch

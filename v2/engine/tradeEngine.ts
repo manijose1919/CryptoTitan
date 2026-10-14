@@ -30,7 +30,10 @@ import {
   shouldForceUnlockLoop,
   shouldKickStaleLoop,
 } from './loopWatchdog.ts';
-import { isConnected as isKrakenWsConnected } from '../../services/krakenWebsocketService.js';
+import {
+  isConnected as isKrakenWsConnected,
+  getWebSocketStatus as getKrakenWsStatus,
+} from '../../services/krakenWebsocketService.js';
 import type { RiskResult } from '../pipeline/types.ts';
 
 // Attribution imports
@@ -131,6 +134,10 @@ export interface V2EngineStatus {
   totalPnlNet: number;
   /** Kraken market WS connected (soak / post-suspend). */
   wsConnected?: boolean;
+  /** Wall-clock ms of last Kraken WS `open` (null if never). */
+  wsLastConnectedAt?: number | null;
+  /** Age of last WS message in ms (null if none). */
+  wsLastMessageAgeMs?: number | null;
   /** Pending TREND/MOMENTUM confirm entries awaiting T+1. */
   pendingConfirmCount?: number;
   /** True while runLoop holds the concurrency mutex. */
@@ -288,6 +295,7 @@ export function getV2Status(): V2EngineStatus {
   const closedTrades = getClosedTrades(1000);
   const totalPnlNet = closedTrades.reduce((sum, t) => sum + (t.pnlNet ?? 0), 0);
 
+  const wsStatus = getKrakenWsStatus();
   return {
     mode: V2_CONFIG.MODE,
     isRunning,
@@ -305,6 +313,8 @@ export function getV2Status(): V2EngineStatus {
     lastScanReasons: stats.lastScanReasons,
     candleCounts: stats.candleCounts,
     wsConnected: isKrakenWsConnected(),
+    wsLastConnectedAt: wsStatus.lastConnectedAt ?? null,
+    wsLastMessageAgeMs: wsStatus.lastMessageAgeMs ?? null,
     pendingConfirmCount: _pendingConfirms.size,
     loopInProgress,
     loopStartedAt,
