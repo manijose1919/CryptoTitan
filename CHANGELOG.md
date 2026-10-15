@@ -47,6 +47,24 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-15 00:15 UTC — Conf-soften fails PF; soak benign skip — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-conf-soften-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~30341s suspend: V2 benign skip + WS clean reconnect; deep STRONG_DOWN.
+- Conf soften 0.65→0.60 under locked stack: earlier n rises to 12–14 but PF stays ~0.44–0.56 — **no promote**.
+
+**Why:**
+Funnel named score/conf as n compressor; test whether soft conf alone clears the bar without other loosen packages.
+
+**What to monitor / watch for:**
+- Do not lower paper `MIN_CONFIDENCE`. Locked stack unchanged.
+
+---
+
 ## 2026-10-14 12:20 UTC — Funnel refresh; WS health age fields — cursor-cloud
 
 **Commits:** this branch

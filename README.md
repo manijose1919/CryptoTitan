@@ -91,6 +91,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-14 midday:** Funnel refresh confirms TimeGate + score/conf as n compressors after SU; WS health age fields on `/api/health`. See [`docs/reviews/2026-10-14-funnel-refresh-ws-health.md`](docs/reviews/2026-10-14-funnel-refresh-ws-health.md).
 
+**2026-10-15:** Conf soften (0.65→0.60) buys earlier n but PF collapses (~0.45) — **not promoted**. Soak benign-skip recovery OK. See [`docs/reviews/2026-10-15-conf-soften-soak.md`](docs/reviews/2026-10-15-conf-soften-soak.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
