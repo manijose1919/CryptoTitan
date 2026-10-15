@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-15 12:15 UTC — TREND score live/backtest parity — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/pipeline/trendScoreAdjustments.ts`, signalGenerator, backtestEngine, funnel script, tests, review, CHANGELOG/README
+**Stats baseline reset:** **no** (paper path unchanged; research baselines superseded)
+
+**What changed:**
+- Extracted shared long-TREND score adjustments (regime/MACD/SR/BB>0.95/TC/maturity).
+- Backtest no longer uses the drifted BB>0.80 cliff; matches live generateSignals.
+- Re-baseline: earlier n=7 PF 0.47; OOS n=2 PF 0.37 — still fail promote. Soak benign skip OK.
+
+**Why:**
+Research must be paper-faithful. Prior OOS strength under locked stack was partly an artifact of backtest score drift.
+
+**What to monitor / watch for:**
+- Treat pre-parity locked-stack OOS figures as superseded for promote calls.
+
+---
+
 ## 2026-10-15 00:15 UTC — Conf-soften fails PF; soak benign skip — cursor-cloud
 
 **Commits:** this branch

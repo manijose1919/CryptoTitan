@@ -93,6 +93,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-15:** Conf soften (0.65→0.60) buys earlier n but PF collapses (~0.45) — **not promoted**. Soak benign-skip recovery OK. See [`docs/reviews/2026-10-15-conf-soften-soak.md`](docs/reviews/2026-10-15-conf-soften-soak.md).
 
+**2026-10-15 midday:** Fixed TREND score live/backtest parity (BB>0.95 + MACD/SR/TC). Locked-stack OOS after fix is weaker (PF 0.37) — prior OOS lift partly artifactual. See [`docs/reviews/2026-10-15-trend-score-parity.md`](docs/reviews/2026-10-15-trend-score-parity.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
