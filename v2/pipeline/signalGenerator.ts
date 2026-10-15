@@ -6,6 +6,7 @@
 import type { Candle, ScanResult, SignalResult } from './types.ts';
 import { V2_CONFIG } from '../engine/config.ts';
 import { checkTimeGate } from './timeGate.ts';
+import { applyLongTrendScoreAdjustments } from './trendScoreAdjustments.ts';
 import { computeSignals } from '../indicators/indicators.ts';
 import { getSignalScores } from '../attribution/attributionStore.ts';
 
@@ -228,62 +229,21 @@ export function generateSignals(
     const { signals, regime } = computeSignals(candles);
     const evals = evaluateSignals(signals);
 
-    // Weighted average
+    // Weighted average + shared live/backtest post-adjustments (regime/MACD/SR/BB/TC/maturity)
     const totalWeight = evals.reduce((sum, e) => sum + e.weight, 0);
-    let compositeScore = totalWeight > 0
+    const baseScore = totalWeight > 0
       ? evals.reduce((sum, e) => sum + e.score * e.weight, 0) / totalWeight
       : 0;
-
-    // Regime bonus: reward trend alignment
-    // UP reduced from +5 to +2 — backtest data: UP regime 43.8% WR vs STRONG_UP 64%.
-    // Lower bonus raises the effective threshold for UP entries.
-    if (regime.regime === 'STRONG_UP') compositeScore += 8;
-    else if (regime.regime === 'UP') compositeScore += 2;
-    else if (regime.regime === 'PULLBACK_UP') compositeScore += 3;
-
-    compositeScore = Math.min(compositeScore, 100);
-
-    // MACD gate: only penalize when MACD histogram is fully negative
-    // In sustained uptrends, histogram stays positive without fresh crosses — that's fine
-    const macdHistPositive = (signals.macd_histogram as number) > 0;
-    if (!macdHistPositive) {
-      compositeScore -= 8; // Moderate penalty — bearish MACD momentum
-    }
-
-    // S/R position gate: only penalize entries very near resistance (>0.85)
-    // In uptrends, price naturally sits in upper half of its channel
-    const srPos = signals.sr_channel_position as number ?? 0.5;
-    if (srPos > 0.85) {
-      compositeScore -= Math.round(5 + (srPos - 0.85) * 40); // -5 at 0.85, -11 at 1.0
-    }
-
-    // BB overbought filter: only penalize extreme overextension (>0.95)
-    // In trends, price riding upper band is normal behavior
+    const adjusted = applyLongTrendScoreAdjustments(baseScore, signals, regime);
+    const compositeScore = adjusted.compositeScore;
+    const confidence = adjusted.confidence;
+    const tcVeto = adjusted.tcVeto;
     const pctB = signals.bb_percent_b as number;
-    if (pctB > 0.95) {
-      compositeScore -= Math.round(10 + (pctB - 0.95) * 200); // -10 at 0.95, -20 at 1.0
-    }
-
-    // TC sell-zone veto: when TC >= 80, the trend is exhausted (per TC indicator's own design)
-    // Data evidence: TC >= 80 had 16.7% WR and -$1.64 avg PnL across all tickers (as of 2026-04-16)
-    // Code comment in evaluateSignals() already says "Sell zone — avoid" but weighted avg let it through
     const tcVal = signals.tc_value as number ?? 50;
-    const tcVeto = tcVal >= 80;
-    if (tcVeto) {
-      compositeScore -= 30; // Strong penalty — should push score below threshold
-    }
-
-    // Trend maturity penalty: penalize extended/exhausted trends
-    let maturityNote = '';
-    if (regime.trendMaturity > V2_CONFIG.TREND_MATURITY_PENALTY_THRESHOLD) {
-      const excess = regime.trendMaturity - V2_CONFIG.TREND_MATURITY_PENALTY_THRESHOLD;
-      const maxExcess = 100 - V2_CONFIG.TREND_MATURITY_PENALTY_THRESHOLD;
-      const penalty = Math.round((excess / maxExcess) * V2_CONFIG.TREND_MATURITY_MAX_PENALTY);
-      compositeScore -= penalty;
-      maturityNote = `, maturity=${regime.trendMaturity}(-${penalty})`;
-    }
-
-    const confidence = compositeScore / 100;
+    const maturityNote =
+      regime.trendMaturity > V2_CONFIG.TREND_MATURITY_PENALTY_THRESHOLD
+        ? `, maturity=${regime.trendMaturity}`
+        : '';
 
     // TimeGate overlay (2026-05-06): hour-of-day + day-of-week filter discovered
     // from data analysis on 132K training trades + 137 v2 production trades.

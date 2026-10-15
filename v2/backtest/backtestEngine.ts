@@ -11,6 +11,7 @@ import { V2_CONFIG, MOMENTUM_CONFIG, STRATEGY_EXIT_CONFIGS } from '../engine/con
 import type { StrategyExitConfig } from '../engine/config.ts';
 import { adx, computeSignals } from '../indicators/indicators.ts';
 import { evaluateSignals } from '../pipeline/signalGenerator.ts';
+import { applyLongTrendScoreAdjustments } from '../pipeline/trendScoreAdjustments.ts';
 import { detectMomentumEntry } from '../pipeline/momentumSignal.ts';
 import { checkTimeGate } from '../pipeline/timeGate.ts';
 import { scanMarket } from '../pipeline/marketScanner.ts';
@@ -465,25 +466,18 @@ function simulateTicker(
       const { signals, regime } = computeSignals(window);
       const evals = evaluateSignals(signals);
       const totalWeight = evals.reduce((sum, e) => sum + e.weight, 0);
-      let compositeScore = totalWeight > 0
+      const baseScore = totalWeight > 0
         ? evals.reduce((sum, e) => sum + e.score * e.weight, 0) / totalWeight
         : 0;
-
-      if (regime.regime === 'STRONG_UP') compositeScore += 8;
-      else if (regime.regime === 'UP') compositeScore += 2;
-      compositeScore = Math.min(compositeScore, 100);
-
-      const pctB = signals.bb_percent_b as number;
-      if (pctB > 0.80) compositeScore -= Math.round(6 + (pctB - 0.80) * 120);
-
-      if (regime.trendMaturity > V2_CONFIG.TREND_MATURITY_PENALTY_THRESHOLD) {
-        const excess = regime.trendMaturity - V2_CONFIG.TREND_MATURITY_PENALTY_THRESHOLD;
-        const maxExcess = 100 - V2_CONFIG.TREND_MATURITY_PENALTY_THRESHOLD;
-        compositeScore -= Math.round((excess / maxExcess) * V2_CONFIG.TREND_MATURITY_MAX_PENALTY);
-      }
+      // Parity with live generateSignals (BB>0.95 + MACD/SR/TC/maturity) — not the
+      // old backtest-only BB>0.80 cliff that rejected paper-eligible stretch bars.
+      const { compositeScore, confidence } = applyLongTrendScoreAdjustments(
+        baseScore,
+        signals,
+        regime,
+      );
 
       const tg = checkTimeGate(window[window.length - 1]?.time);
-      const confidence = compositeScore / 100;
       const atrPercent = signals.atr_percent as number;
       // Paper riskGate/executor size SL/TP from STRATEGY_EXIT_CONFIGS.TREND
       const trendExit = STRATEGY_EXIT_CONFIGS.TREND;
