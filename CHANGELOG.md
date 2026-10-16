@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-16 00:15 UTC — Dual watchdog kicks; multiStrategy TREND parity — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/backtest/multiStrategy/entryDetectors.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~41630s: V2 + Bearish watchdog kicks; WS clean. Risk-off DOWN/STRONG_DOWN.
+- `detectTrend` now uses shared score adjustments (was UP+5, missing TC/maturity).
+- Post-parity autopsy: earlier n=7 −$10.72; OOS45 n=1 +$1.81 — still fail promote.
+
+**Why:**
+Finish TREND score parity in multiStrategy path; document calendar-rolled OOS n=1 after score fix.
+
+**What to monitor / watch for:**
+- No trading-config change. Wait for STRONG_UP in-band fills.
+
+---
+
 ## 2026-10-15 12:15 UTC — TREND score live/backtest parity — cursor-cloud
 
 **Commits:** this branch
