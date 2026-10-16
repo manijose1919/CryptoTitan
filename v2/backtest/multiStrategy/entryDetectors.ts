@@ -2,6 +2,7 @@ import type { Candle, SignalSnapshot } from '../../pipeline/types.ts';
 import type { RegimeResult } from '../../indicators/indicators.ts';
 import type { StrategyConfig, EntrySignal } from './types.ts';
 import { evaluateSignals } from '../../pipeline/signalGenerator.ts';
+import { applyLongTrendScoreAdjustments } from '../../pipeline/trendScoreAdjustments.ts';
 import { checkTimeGate } from '../../pipeline/timeGate.ts';
 
 const NO_ENTRY: EntrySignal = {
@@ -117,22 +118,15 @@ function detectTrend(
 ): EntrySignal {
   const evals = evaluateSignals(signals as Record<string, number | boolean | string>);
   const totalWeight = evals.reduce((s, e) => s + e.weight, 0);
-  let score = totalWeight > 0
+  const baseScore = totalWeight > 0
     ? evals.reduce((s, e) => s + e.score * e.weight, 0) / totalWeight
     : 0;
-
-  if (regime.regime === 'STRONG_UP') score += 8;
-  else if (regime.regime === 'UP') score += 5;
-  score = Math.min(score, 100);
-
-  const macdHist = signals.macd_histogram as number;
-  if (macdHist <= 0) score -= 8;
-
-  const srPos = signals.sr_channel_position as number ?? 0.5;
-  if (srPos > 0.85) score -= Math.round(5 + (srPos - 0.85) * 40);
-
-  const pctB = signals.bb_percent_b as number;
-  if (pctB > 0.95) score -= Math.round(10 + (pctB - 0.95) * 200);
+  // Shared with live generateSignals / backtestEngine (UP +2 not +5; TC/maturity included).
+  const { compositeScore: score, confidence } = applyLongTrendScoreAdjustments(
+    baseScore,
+    signals,
+    regime,
+  );
 
   // TimeGate score boost — during proven-best hours, lower threshold by BOOST_AMOUNT
   const tg = checkTimeGate(candles[candles.length - 1]?.time);
@@ -143,7 +137,6 @@ function detectTrend(
   const atr = atrDollar(signals);
   if (atr <= 0) return NO_ENTRY;
 
-  const confidence = score / 100;
   return {
     shouldEnter: true,
     confidence,
