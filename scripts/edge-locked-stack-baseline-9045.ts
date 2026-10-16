@@ -9,6 +9,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { initializeDatabase } from '../services/database.js';
 import { initV2Tables } from '../v2/attribution/attributionStore.ts';
 import { V2_CONFIG, MOMENTUM_CONFIG, ADX_THRESHOLDS } from '../v2/engine/config.ts';
+import { setSignalWeightMode } from '../v2/pipeline/signalGenerator.ts';
 import { runBacktest } from '../v2/backtest/backtestEngine.ts';
 import type { BacktestConfig, BacktestResult } from '../v2/backtest/types.ts';
 
@@ -70,6 +71,9 @@ async function main(): Promise<void> {
   (V2_CONFIG as { ALLOWED_REGIMES: readonly string[] }).ALLOWED_REGIMES = ['STRONG_UP'];
   (V2_CONFIG as { MAX_ATR_PERCENT: number }).MAX_ATR_PERCENT = 2.5;
   (MOMENTUM_CONFIG as { ENABLED: boolean }).ENABLED = true;
+  // Paper scorecard is still inconclusive (n<20); force static weights so research
+  // does not silently diverge when adaptive pruning later activates on DATA_DIR.
+  setSignalWeightMode('static');
 
   const end = new Date();
   end.setUTCHours(0, 0, 0, 0);
@@ -84,6 +88,7 @@ async function main(): Promise<void> {
   const out = {
     generatedAt: new Date().toISOString(),
     stack: 'STRONG_UP + confirm + chase0.8 + MAX2.5 + minATR1.5 + ADX20 + confirmMomentum',
+    signalWeightMode: 'static',
     split_90_45: { earlier: earlier90, oos: oos45, pass: meetsBar(oos45, earlier90) },
     split_60_60: { earlier: earlier60, oos: oos60, pass: meetsBar(oos60, earlier60) },
   };

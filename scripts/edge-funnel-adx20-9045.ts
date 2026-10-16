@@ -17,7 +17,7 @@ import { initializeDatabase } from '../services/database.js';
 import { initV2Tables } from '../v2/attribution/attributionStore.ts';
 import { V2_CONFIG, ADX_THRESHOLDS } from '../v2/engine/config.ts';
 import { adx, computeSignals } from '../v2/indicators/indicators.ts';
-import { evaluateSignals } from '../v2/pipeline/signalGenerator.ts';
+import { evaluateSignals, setSignalWeightMode } from '../v2/pipeline/signalGenerator.ts';
 import { scanMarket } from '../v2/pipeline/marketScanner.ts';
 import { checkTimeGate } from '../v2/pipeline/timeGate.ts';
 import {
@@ -162,6 +162,7 @@ async function main(): Promise<void> {
   (V2_CONFIG as { ALLOWED_REGIMES: readonly string[] }).ALLOWED_REGIMES = ['STRONG_UP'];
   (V2_CONFIG as { MAX_ATR_PERCENT: number }).MAX_ATR_PERCENT = 2.5;
   (V2_CONFIG as { MIN_ATR_PERCENT: number }).MIN_ATR_PERCENT = 1.5;
+  setSignalWeightMode('static');
 
   const endRecent = new Date();
   endRecent.setUTCHours(0, 0, 0, 0);

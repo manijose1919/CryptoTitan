@@ -37,6 +37,20 @@ let _cachedVerdicts: Map<string, string> | null = null;
 let _verdictCacheTime = 0;
 const VERDICT_CACHE_TTL = 5 * 60 * 1000;
 
+/** Research scripts can force base weights so baselines are not DATA_DIR-scorecard dependent. */
+export type SignalWeightMode = 'adaptive' | 'static';
+let _signalWeightMode: SignalWeightMode =
+  process.env.V2_SIGNAL_WEIGHT_MODE === 'static' ? 'static' : 'adaptive';
+
+export function setSignalWeightMode(mode: SignalWeightMode): void {
+  _signalWeightMode = mode;
+  _cachedVerdicts = null;
+}
+
+export function getSignalWeightMode(): SignalWeightMode {
+  return _signalWeightMode;
+}
+
 function getScorecardVerdicts(): Map<string, string> {
   const now = Date.now();
   if (_cachedVerdicts && now - _verdictCacheTime < VERDICT_CACHE_TTL) {
@@ -77,9 +91,26 @@ function getScorecardVerdicts(): Map<string, string> {
  * so this change doesn't reach them. They were already unused in the composite.
  */
 function adaptWeight(evalName: string, baseWeight: number): number {
+  if (_signalWeightMode === 'static') return baseWeight;
   const scorecardName = EVAL_TO_SCORECARD[evalName];
   if (!scorecardName) return baseWeight;
   const verdicts = getScorecardVerdicts();
+  const verdict = verdicts.get(scorecardName);
+  if (verdict === 'proven') return Math.round(baseWeight * 1.5);
+  if (verdict === 'negative') return 0;
+  return baseWeight;
+}
+
+/** Exported for unit tests — mirrors adaptWeight without needing a live scorecard. */
+export function resolveSignalWeight(
+  evalName: string,
+  baseWeight: number,
+  verdicts: Map<string, string>,
+  mode: SignalWeightMode = 'adaptive',
+): number {
+  if (mode === 'static') return baseWeight;
+  const scorecardName = EVAL_TO_SCORECARD[evalName];
+  if (!scorecardName) return baseWeight;
   const verdict = verdicts.get(scorecardName);
   if (verdict === 'proven') return Math.round(baseWeight * 1.5);
   if (verdict === 'negative') return 0;
