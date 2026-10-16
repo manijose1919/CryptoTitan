@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-16 12:15 UTC — Static research signal weights; timer renew — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/pipeline/signalGenerator.ts`, weight-mode tests, locked baseline/autopsy/funnel scripts, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~41660s: dual watchdog kicks; WS clean; regimes easing to SIDEWAYS.
+- Scorecard audit: paper inconclusive (n=6); research empty — no adaptive drift today.
+- Research scripts force `setSignalWeightMode('static')` so baselines stay deterministic when adaptive pruning later activates.
+- Renewed 12h timer through ~2026-10-23.
+
+**Why:**
+Prevent silent live/research score divergence once scorecard reaches MIN_TRADES_FOR_SCORING.
+
+**What to monitor / watch for:**
+- When paper scorecard hits n≥20 with negative/proven verdicts, re-evaluate whether research should snapshot paper weights instead of pure static.
+
+---
+
 ## 2026-10-16 00:15 UTC — Dual watchdog kicks; multiStrategy TREND parity — cursor-cloud
 
 **Commits:** this branch

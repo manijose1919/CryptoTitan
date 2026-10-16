@@ -97,6 +97,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-16:** Dual watchdogs kicked (~41630s). multiStrategy TREND aligned to shared score adjustments. Post-parity OOS45 n=1 — still no promote. See [`docs/reviews/2026-10-16-post-parity-autopsy.md`](docs/reviews/2026-10-16-post-parity-autopsy.md).
 
+**2026-10-16 midday:** Research scripts force static signal weights (paper scorecard still inconclusive). 12h timer renewed through ~2026-10-23. See [`docs/reviews/2026-10-16-signal-weight-static.md`](docs/reviews/2026-10-16-signal-weight-static.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
