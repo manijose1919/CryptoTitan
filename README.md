@@ -101,6 +101,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-17:** STRONG_DOWN short+confirm probe: earlier PF 1.30 n=20 but OOS PF 0.72 −$9.35 — **shorts stay off**. See [`docs/reviews/2026-10-17-short-strong-down-probe.md`](docs/reviews/2026-10-17-short-strong-down-probe.md).
 
+**2026-10-17 midday:** Short SL tighten (1.5→1.0) lifts OOS PF to 0.99 — still fails promote. Dual watchdogs OK. See [`docs/reviews/2026-10-17-short-exit-ablation.md`](docs/reviews/2026-10-17-short-exit-ablation.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

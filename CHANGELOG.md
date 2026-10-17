@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-17 12:15 UTC — Short SL ablation fails OOS; dual watchdog — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-short-exit-ablation-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~41810s: V2 + Bearish watchdog kicks; WS clean.
+- Short SL ATR 1.5→1.0 under confirm stack: OOS PF 0.72→0.99 still fails promote; earlier stays ~1.3–1.5.
+- Shorts remain disabled.
+
+**Why:**
+OOS stop drag was the binding short failure; test whether tighter SL alone clears the bar.
+
+**What to monitor / watch for:**
+- Do not enable paper shorts. Locked long stack unchanged.
+
+---
+
 ## 2026-10-17 00:15 UTC — STRONG_DOWN short probe fails OOS — cursor-cloud
 
 **Commits:** this branch
