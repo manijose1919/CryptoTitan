@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-17 00:15 UTC — STRONG_DOWN short probe fails OOS — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-short-strong-down-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~42267s: V2 benign skip; WS clean; risk-off.
+- Fee-aware short probe (confirm+ADX+ATR): earlier n=20 PF 1.30, OOS n=12 PF 0.72 −$9.35 — **no promote**.
+- `SHORTS_ENABLED` remains false.
+
+**Why:**
+Risk-off tape invited a fresh short OOS check under modern confirm parity; OOS stops still dominate (same decay as 2026-07).
+
+**What to monitor / watch for:**
+- Do not enable paper shorts. Long locked stack unchanged.
+
+---
+
 ## 2026-10-16 12:15 UTC — Static research signal weights; timer renew — cursor-cloud
 
 **Commits:** this branch
