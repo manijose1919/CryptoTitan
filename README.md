@@ -105,6 +105,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-18:** Confirm-bar ADX decay ~3% — not worth gating. Soak benign-skip OK. See [`docs/reviews/2026-10-18-confirm-adx-diag.md`](docs/reviews/2026-10-18-confirm-adx-diag.md).
 
+**2026-10-18 midday:** Scarcity refresh (earlier60 SU+ADX+ATR 135 vs oos60 175); locked baseline still fails n≥10. multiStrategy TREND now shares live `MIN_CONFIDENCE`. See [`docs/reviews/2026-10-18-scarcity-refresh-conf-parity.md`](docs/reviews/2026-10-18-scarcity-refresh-conf-parity.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

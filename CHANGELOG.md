@@ -47,6 +47,28 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-18 12:15 UTC — Scarcity refresh; multiStrategy MIN_CONFIDENCE parity — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/backtest/multiStrategy/entryDetectors.ts` (+test), scarcity script store-write harden, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak: paper open 0; BTC SIDEWAYS / rest DOWN–STRONG_DOWN; F&G 48; dual watchdog benign skip after ~41829s suspend; WS clean.
+- Locked baseline still fails promote (90/45 earlier n=7 PF0.47; 60/60 earlier n=4 despite OOS PF1.56).
+- Scarcity refresh: earlier60 SU+ADX+ATR **135** vs oos60 **175** (~1.3×; was ~2.5× on 2026-10-08) — gap narrowed but earlier n≥10 still structural.
+- multiStrategy TREND now enforces `MIN_CONFIDENCE` like live `generateSignals` (closes 55–64 optimistic admits). Paper path unchanged.
+- Scarcity diag store mirror is best-effort (EFBIG on quota).
+
+**Why:**
+Calendar-roll scarcity check + close research/live confidence parity hole before any further multiStrategy promotion use.
+
+**What to monitor / watch for:**
+- No paper trading-config change. Continue locked-stack soak for STRONG_UP fills.
+- Do not re-add UP / loosen conf without fee-aware dual-split clear.
+
+---
+
 ## 2026-10-18 00:15 UTC — Confirm-ADX decay diag; soak benign skip — cursor-cloud
 
 **Commits:** this branch

@@ -1,6 +1,7 @@
 import type { Candle, SignalSnapshot } from '../../pipeline/types.ts';
 import type { RegimeResult } from '../../indicators/indicators.ts';
 import type { StrategyConfig, EntrySignal } from './types.ts';
+import { V2_CONFIG } from '../../engine/config.ts';
 import { evaluateSignals } from '../../pipeline/signalGenerator.ts';
 import { applyLongTrendScoreAdjustments } from '../../pipeline/trendScoreAdjustments.ts';
 import { checkTimeGate } from '../../pipeline/timeGate.ts';
@@ -132,6 +133,9 @@ function detectTrend(
   const tg = checkTimeGate(candles[candles.length - 1]?.time);
   const adjustedThreshold = config.entryParams.minCompositeScore - tg.scoreBoost;
   if (score < adjustedThreshold) return NO_ENTRY;
+  // Live generateSignals also requires MIN_CONFIDENCE (0.65 → effective score≥65).
+  // Without this, multiStrategy TREND admitted 60–64 (and boosted 55–64) that paper rejects.
+  if (confidence < V2_CONFIG.MIN_CONFIDENCE) return NO_ENTRY;
 
   const price = signals.close_price as number;
   const atr = atrDollar(signals);

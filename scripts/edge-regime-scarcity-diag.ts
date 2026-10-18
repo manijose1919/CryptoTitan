@@ -97,8 +97,14 @@ async function main(): Promise<void> {
       oos45: await windowCounts('oos45', 45, end),
     },
   };
-  writeFileSync('/opt/cursor/artifacts/edge-regime-scarcity-diag.json', JSON.stringify(out, null, 2));
-  writeFileSync('/cursor/stores/self/artifacts/edge-regime-scarcity-diag.json', JSON.stringify(out, null, 2));
+  const body = JSON.stringify(out, null, 2);
+  writeFileSync('/opt/cursor/artifacts/edge-regime-scarcity-diag.json', body);
+  // Store mirror is best-effort (quota / EFBIG on some hosts).
+  try {
+    writeFileSync('/cursor/stores/self/artifacts/edge-regime-scarcity-diag.json', body);
+  } catch (err) {
+    console.warn('store mirror skipped:', (err as Error).code ?? err);
+  }
   console.log('\nWrote edge-regime-scarcity-diag.json');
 }
 
