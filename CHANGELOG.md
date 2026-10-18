@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-18 00:15 UTC — Confirm-ADX decay diag; soak benign skip — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-confirm-adx-persist-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~41686s: V2 benign skip; WS clean; deep STRONG_DOWN.
+- Confirm-bar ADX decay ~3.4% earlier / 3.2% OOS — not binding; **not wired**.
+- Locked baseline still fails promote (earlier n=7).
+
+**Why:**
+Test whether confirm-bar ADX persistence could clean earlier losers without ATR/regime loosen.
+
+**What to monitor / watch for:**
+- No gate change. Continue locked-stack soak.
+
+---
+
 ## 2026-10-17 12:15 UTC — Short SL ablation fails OOS; dual watchdog — cursor-cloud
 
 **Commits:** this branch
