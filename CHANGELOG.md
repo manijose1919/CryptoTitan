@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-19 00:15 UTC — Exit-knob refresh under locked stack; soak OK — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-exit-adx20-confirm-9045.ts` (static weights), review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak: paper open 0; BTC SIDEWAYS / rest DOWN; F&G 51; dual watchdog benign skip after suspend; `V2_LIVE_CONFIRMED=no`.
+- Locked baseline: 90/45 still fail (earlier n=7 PF0.47); 60/60 OOS PF **3.48** n=7 but earlier n=4 — no promote.
+- Exit ablations (tk 3/4, minMove, trail giveback, SL1.2): **anyPromote=false**; longer time-kill hurts earlier; trail tighten micro-only.
+- Exit research script now forces static signal weights (parity with other edge scripts).
+
+**Why:**
+Earlier drag is still time_kill + BNB stop — re-test exit knobs post score-parity / calendar roll before touching entries.
+
+**What to monitor / watch for:**
+- No paper exit/config change. Continue locked-stack soak.
+
+---
+
 ## 2026-10-18 12:15 UTC — Scarcity refresh; multiStrategy MIN_CONFIDENCE parity — cursor-cloud
 
 **Commits:** this branch

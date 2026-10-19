@@ -7,6 +7,9 @@
  *
  * Protocol: 90/45 CAD10 4h 0.52% RT 5bps pessimistic + confirmMomentum.
  * Bar: OOS PF>1.1 & net>0 & earlier PF≥0.9 & earlier n≥10.
+ *
+ * Prefer a warm DATA_DIR candle cache (e.g. /tmp/cryptotitan-edge-research) so
+ * 90d windows get ~540 4h bars — a cold Kraken-only fetch can truncate ~75d.
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { initializeDatabase } from '../services/database.js';
@@ -18,6 +21,7 @@ import {
   STRATEGY_EXIT_CONFIGS,
 } from '../v2/engine/config.ts';
 import type { StrategyExitConfig } from '../v2/engine/config.ts';
+import { setSignalWeightMode } from '../v2/pipeline/signalGenerator.ts';
 import { runBacktest } from '../v2/backtest/backtestEngine.ts';
 import type { BacktestConfig, BacktestResult } from '../v2/backtest/types.ts';
 
@@ -179,6 +183,8 @@ async function main(): Promise<void> {
   mkdirSync('/opt/cursor/artifacts', { recursive: true });
   initializeDatabase();
   initV2Tables();
+  // Keep research deterministic while paper scorecard remains inconclusive.
+  setSignalWeightMode('static');
   const endRecent = new Date();
   endRecent.setUTCHours(0, 0, 0, 0);
   const endEarlier90 = new Date(endRecent.getTime() - 45 * 86400000);
@@ -212,8 +218,13 @@ async function main(): Promise<void> {
     rows,
     anyPromote: rows.some((r) => r.meetsPromotionBar),
   };
-  writeFileSync('/opt/cursor/artifacts/edge-exit-adx20-confirm-9045.json', JSON.stringify(out, null, 2));
-  writeFileSync('/cursor/stores/self/artifacts/edge-exit-adx20-confirm-9045.json', JSON.stringify(out, null, 2));
+  const body = JSON.stringify(out, null, 2);
+  writeFileSync('/opt/cursor/artifacts/edge-exit-adx20-confirm-9045.json', body);
+  try {
+    writeFileSync('/cursor/stores/self/artifacts/edge-exit-adx20-confirm-9045.json', body);
+  } catch (err) {
+    console.warn('store mirror skipped:', (err as Error).code ?? err);
+  }
   console.log('\nWrote edge-exit-adx20-confirm-9045.json');
   console.log(`anyPromote=${out.anyPromote}`);
   for (const r of rows) {
