@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-19 12:15 UTC — rangeATR isolate + feature/funnel refresh; dual watchdog — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-range-atr-locked-9045.ts`, feature-autopsy static weights, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~42k suspend: V2 + Bearish Watchdog kick; WS reconnect; brief monitor stale then clear.
+- Funnel refresh: after SU, timeGate then score/conf dominate; entryEligible earlier=7 / oos=1.
+- Feature autopsy: BNB stop still vol_ratio 0.16; no new fee-aware tighten lever (n=1 OOS).
+- rangeATR under locked stack (conf 0.65): ≤2.0 lifts earlier PF 0.47→0.63 but n 7→5 and BNB remains — **not promoted**.
+
+**Why:**
+Isolate chaos-bar filter without conf soften; re-check feature gaps after calendar roll.
+
+**What to monitor / watch for:**
+- No paper config change. Continue locked-stack soak.
+
+---
+
 ## 2026-10-19 00:15 UTC — Exit-knob refresh under locked stack; soak OK — cursor-cloud
 
 **Commits:** this branch
