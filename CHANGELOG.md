@@ -47,6 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-20 12:15 UTC — TimeGate re-test after scarcity flip; null-PF bar fix — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-timegate-scarcity-flip-9045.ts`, baseline `meetsBar` null-PF fix, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~41922s: benign skip; paper open 0; DOWN/SIDEWAYS; F&G 50; `V2_LIVE_CONFIRMED=no`.
+- After scarcity flip, **no_overnight** / **timegate_off** clear fee-aware **90/45** (earlier n=15 PF1.24; OOS all-win) but **fail 60/60 earlier n=8** — not promoted.
+- Research `meetsBar` treated `pf=null` (Infinity / all winners) as 0 — fixed so all-win OOS can clear PF>1.1.
+
+**Why:**
+Scarcity flip removed the “earlier starved of SU bars” excuse; re-check whether TimeGate alone was the remaining 60/60 binder.
+
+**What to monitor / watch for:**
+- No paper TimeGate change. Dual-split still required before any overnight unblock.
+
+---
+
 ## 2026-10-20 00:15 UTC — Confirm-mode fail; scarcity asymmetry flip; artifact write harden — cursor-cloud
 
 **Commits:** this branch

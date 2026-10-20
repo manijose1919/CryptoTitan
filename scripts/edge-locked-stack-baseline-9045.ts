@@ -35,11 +35,16 @@ function summarize(result: BacktestResult) {
   };
 }
 
+/** null PF = all winners (Infinity) — treat as passing the PF threshold. */
+function pfOk(pf: number | null, min: number): boolean {
+  return pf == null ? true : pf >= min;
+}
+
 function meetsBar(
-  oos: { pf: number | null; net: number },
+  oos: { pf: number | null; net: number; trades: number },
   earlier: { pf: number | null; trades: number },
 ): boolean {
-  return (oos.pf ?? 0) > 1.1 && oos.net > 0 && (earlier.pf ?? 0) >= 0.9 && earlier.trades >= 10;
+  return oos.trades > 0 && pfOk(oos.pf, 1.1) && oos.net > 0 && pfOk(earlier.pf, 0.9) && earlier.trades >= 10;
 }
 
 async function run(days: number, end: Date, label: string) {

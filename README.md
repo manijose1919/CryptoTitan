@@ -113,6 +113,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-20:** Scarcity asymmetry flipped (earlier60 in-band ≥ oos60) but earlier n still starved post-regime. Stricter confirmMode fails — keep `bullish_close`. See [`docs/reviews/2026-10-20-confirm-mode-scarcity-flip.md`](docs/reviews/2026-10-20-confirm-mode-scarcity-flip.md).
 
+**2026-10-20 midday:** TimeGate overnight-unblock / off clears 90/45 after scarcity flip but **fails 60/60 earlier n=8** — keep paper TimeGate. Fixed research null-PF promote check. See [`docs/reviews/2026-10-20-timegate-scarcity-flip.md`](docs/reviews/2026-10-20-timegate-scarcity-flip.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
