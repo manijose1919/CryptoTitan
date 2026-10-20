@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-20 00:15 UTC — Confirm-mode fail; scarcity asymmetry flip; artifact write harden — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-confirm-mode-locked-9045.ts`, `scripts/researchArtifactWrite.ts`, baseline/scarcity writers, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~42375s: dual Watchdog kick; paper open 0; DOWN/SIDEWAYS; F&G 51; `V2_LIVE_CONFIRMED=no`.
+- Locked baseline still fails promote (earlier90 n=7 PF0.47; earlier60 n=4; OOS60 PF≈3.45).
+- Scarcity flip: earlier60 SU+ADX+ATR **175** vs oos60 **161** — earlier no longer scarcer; n-starve is post-regime gates.
+- Stricter confirmMode (`close_above_signal` / `bullish_and_above`) worsens earlier PF — keep paper `bullish_close`.
+- Research artifact writer falls back to `/tmp/cryptotitan-artifacts` when store symlink ENOENT.
+
+**Why:**
+Test whether stricter confirm cleans earlier losers without entry loosen; update scarcity narrative after calendar roll.
+
+**What to monitor / watch for:**
+- No paper config change. Continue locked-stack soak.
+
+---
+
 ## 2026-10-19 12:15 UTC — rangeATR isolate + feature/funnel refresh; dual watchdog — cursor-cloud
 
 **Commits:** this branch

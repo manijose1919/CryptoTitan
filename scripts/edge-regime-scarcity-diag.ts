@@ -9,12 +9,13 @@
  *   DATA_DIR=/tmp/cryptotitan-edge-research \
  *     node --experimental-strip-types scripts/edge-regime-scarcity-diag.ts
  */
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { initializeDatabase } from '../services/database.js';
 import { initV2Tables } from '../v2/attribution/attributionStore.ts';
 import { V2_CONFIG, ADX_THRESHOLDS } from '../v2/engine/config.ts';
 import { adx, computeSignals } from '../v2/indicators/indicators.ts';
 import { loadAllCandles } from '../v2/backtest/candleCache.ts';
+import { writeResearchArtifact } from './researchArtifactWrite.ts';
 
 const CAD10 = [...V2_CONFIG.SCAN_TICKERS];
 const MIN_ADX = ADX_THRESHOLDS.TREND_MIN;
@@ -97,14 +98,7 @@ async function main(): Promise<void> {
       oos45: await windowCounts('oos45', 45, end),
     },
   };
-  const body = JSON.stringify(out, null, 2);
-  writeFileSync('/opt/cursor/artifacts/edge-regime-scarcity-diag.json', body);
-  // Store mirror is best-effort (quota / EFBIG on some hosts).
-  try {
-    writeFileSync('/cursor/stores/self/artifacts/edge-regime-scarcity-diag.json', body);
-  } catch (err) {
-    console.warn('store mirror skipped:', (err as Error).code ?? err);
-  }
+  writeResearchArtifact('edge-regime-scarcity-diag.json', JSON.stringify(out, null, 2));
   console.log('\nWrote edge-regime-scarcity-diag.json');
 }
 

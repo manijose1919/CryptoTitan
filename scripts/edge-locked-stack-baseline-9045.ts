@@ -5,13 +5,14 @@
  *
  * Stack: STRONG_UP + confirm + chase≤0.80 + MAX2.5 + minATR1.5 + ADX≥20 + confirmMomentum.
  */
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { initializeDatabase } from '../services/database.js';
 import { initV2Tables } from '../v2/attribution/attributionStore.ts';
 import { V2_CONFIG, MOMENTUM_CONFIG, ADX_THRESHOLDS } from '../v2/engine/config.ts';
 import { setSignalWeightMode } from '../v2/pipeline/signalGenerator.ts';
 import { runBacktest } from '../v2/backtest/backtestEngine.ts';
 import type { BacktestConfig, BacktestResult } from '../v2/backtest/types.ts';
+import { writeResearchArtifact } from './researchArtifactWrite.ts';
 
 const CAD10 = [...V2_CONFIG.SCAN_TICKERS];
 const MIN_ADX = ADX_THRESHOLDS.TREND_MIN;
@@ -92,8 +93,7 @@ async function main(): Promise<void> {
     split_90_45: { earlier: earlier90, oos: oos45, pass: meetsBar(oos45, earlier90) },
     split_60_60: { earlier: earlier60, oos: oos60, pass: meetsBar(oos60, earlier60) },
   };
-  writeFileSync('/opt/cursor/artifacts/edge-locked-stack-baseline-9045.json', JSON.stringify(out, null, 2));
-  writeFileSync('/cursor/stores/self/artifacts/edge-locked-stack-baseline-9045.json', JSON.stringify(out, null, 2));
+  writeResearchArtifact('edge-locked-stack-baseline-9045.json', JSON.stringify(out, null, 2));
   console.log(JSON.stringify(out, null, 2));
 }
 

@@ -111,6 +111,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-19 midday:** Dual watchdog kick OK. rangeATR≤2.0 under locked stack lifts earlier PF but fails n / still keeps BNB stop — not promoted. See [`docs/reviews/2026-10-19-range-atr-feature-funnel.md`](docs/reviews/2026-10-19-range-atr-feature-funnel.md).
 
+**2026-10-20:** Scarcity asymmetry flipped (earlier60 in-band ≥ oos60) but earlier n still starved post-regime. Stricter confirmMode fails — keep `bullish_close`. See [`docs/reviews/2026-10-20-confirm-mode-scarcity-flip.md`](docs/reviews/2026-10-20-confirm-mode-scarcity-flip.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
