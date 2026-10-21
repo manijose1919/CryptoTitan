@@ -133,8 +133,8 @@ function detectTrend(
   const tg = checkTimeGate(candles[candles.length - 1]?.time);
   const adjustedThreshold = config.entryParams.minCompositeScore - tg.scoreBoost;
   if (score < adjustedThreshold) return NO_ENTRY;
-  // Live generateSignals also requires MIN_CONFIDENCE (0.65 → effective score≥65).
-  // Without this, multiStrategy TREND admitted 60–64 (and boosted 55–64) that paper rejects.
+  // Live generateSignals also requires MIN_CONFIDENCE (0.60 as of 2026-10-21).
+  // Without this, multiStrategy TREND admitted scores that pass minComposite but fail paper conf.
   if (confidence < V2_CONFIG.MIN_CONFIDENCE) return NO_ENTRY;
 
   const price = signals.close_price as number;

@@ -3,13 +3,11 @@ import { TIME_GATE_CONFIG, checkTimeGate } from './timeGate.ts';
 import { V2_CONFIG } from '../engine/config.ts';
 
 /**
- * Documents the live interaction between TimeGate scoreBoost and MIN_CONFIDENCE.
- * Research 2026-10-08: boost lowers the composite-score floor but confidence
- * still requires composite≥65, so boost is a dead letter for TREND entries.
+ * TimeGate scoreBoost vs MIN_CONFIDENCE after 2026-10-21 promote (conf 0.60).
+ * At conf 0.65 boost was a dead letter; at 0.60 scores 55–59 can pass with boost.
  */
-describe('TimeGate scoreBoost vs MIN_CONFIDENCE (dead letter)', () => {
+describe('TimeGate scoreBoost vs MIN_CONFIDENCE', () => {
   it('boosted hours return BOOST_AMOUNT', () => {
-    // 12 UTC is in BOOSTED_HOURS
     const noon = Date.UTC(2026, 5, 15, 12, 0, 0); // Mon 2026-06-15 12:00 UTC
     const r = checkTimeGate(noon);
     expect(r.allow).toBe(true);
@@ -17,24 +15,28 @@ describe('TimeGate scoreBoost vs MIN_CONFIDENCE (dead letter)', () => {
     expect(TIME_GATE_CONFIG.BOOST_AMOUNT).toBe(5);
   });
 
-  it('score 62 passes composite floor with boost but fails MIN_CONFIDENCE', () => {
-    const compositeScore = 62;
+  it('overnight hours 0–7 are no longer hard-blocked', () => {
+    const asian = Date.UTC(2026, 5, 15, 3, 0, 0);
+    expect(checkTimeGate(asian).allow).toBe(true);
+    expect(TIME_GATE_CONFIG.BLOCKED_HOURS).toEqual([13, 20]);
+  });
+
+  it('score 60 passes boosted composite floor and MIN_CONFIDENCE=0.60', () => {
+    const compositeScore = 60;
     const scoreBoost = TIME_GATE_CONFIG.BOOST_AMOUNT;
     const scoreFloor = V2_CONFIG.MIN_COMPOSITE_SCORE - scoreBoost; // 60 - 5 = 55
     const confidence = compositeScore / 100;
 
     expect(compositeScore >= scoreFloor).toBe(true);
-    expect(confidence >= V2_CONFIG.MIN_CONFIDENCE).toBe(false);
-    // Binding gate under current paper config:
-    expect(V2_CONFIG.MIN_CONFIDENCE).toBe(0.65);
+    expect(confidence >= V2_CONFIG.MIN_CONFIDENCE).toBe(true);
+    expect(V2_CONFIG.MIN_CONFIDENCE).toBe(0.6);
     expect(V2_CONFIG.MIN_COMPOSITE_SCORE).toBe(60);
   });
 
-  it('score 65 is the effective floor while MIN_CONFIDENCE=0.65', () => {
-    const compositeScore = 65;
-    const confidence = compositeScore / 100;
-    expect(confidence >= V2_CONFIG.MIN_CONFIDENCE).toBe(true);
-    // Without confidence, score60+boost would admit 55–64 — those stay blocked today.
-    expect(64 / 100 >= V2_CONFIG.MIN_CONFIDENCE).toBe(false);
+  it('score 59 fails confidence even when boosted score floor would allow', () => {
+    const compositeScore = 59;
+    const scoreFloor = V2_CONFIG.MIN_COMPOSITE_SCORE - TIME_GATE_CONFIG.BOOST_AMOUNT;
+    expect(compositeScore >= scoreFloor).toBe(true); // 59 >= 55
+    expect(compositeScore / 100 >= V2_CONFIG.MIN_CONFIDENCE).toBe(false); // 0.59 < 0.60
   });
 });

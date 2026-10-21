@@ -32,14 +32,12 @@ export const TIME_GATE_CONFIG = {
   ENABLED: true,
 
   // Hard-block hours (UTC) — consistently worst across both training + v2 data.
-  // 2026-06-30 refresh (382 live TREND+MOMENTUM trades): the entire 0-7 UTC overnight
-  // window (Asian/pre-London low liquidity) is net-negative and — crucially — held
-  // out-of-sample in BOTH halves of history (1st half -$0.54/trade, 2nd half -$0.31).
-  // Backtest: blocking 0-7 UTC lifts net +$96->+$154 and MORE THAN DOUBLES per-trade
-  // expectancy (+$0.25 -> +$0.56). It also subsumes the apparent "Saturday is bad"
-  // effect (Saturday looked bad only because of its overnight hours). 13 & 20 UTC kept
-  // from the original training-data blocks (13: 44% WR; 20: 20% WR live).
-  BLOCKED_HOURS: [0, 1, 2, 3, 4, 5, 6, 7, 13, 20] as readonly number[],
+  // 2026-10-21 promote: drop overnight 0–7 UTC hard-block (keep 13 & 20). Fee-aware
+  // dual-split clear only when paired with MIN_CONFIDENCE=0.60 + chase≤0.85 under the
+  // locked STRONG_UP+confirm stack — see docs/reviews/2026-10-21-overnight-conf-chase-promote.md.
+  // Prior 0–7 block (2026-06-30) was training-era; post-parity scarcity flip + neighborhood
+  // showed overnight unblock is required to clear earlier60 n≥10.
+  BLOCKED_HOURS: [13, 20] as readonly number[],
 
   // Hard-block days (0=Sun, 1=Mon, ..., 5=Fri, 6=Sat)
   // Friday: 40.5% WR, -$938/trade training (worst day)
@@ -54,9 +52,8 @@ export const TIME_GATE_CONFIG = {
   // 21 UTC: 55.2% WR, +$1378/trade training (highest training avg PnL)
   BOOSTED_HOURS: [12, 14, 17, 21] as readonly number[],
   BOOST_AMOUNT: 5, // points to subtract from entry-score threshold (60 -> 55)
-  // 2026-10-08: with MIN_CONFIDENCE=0.65, composite must be ≥65 anyway — scoreBoost
-  // is a dead letter for TREND until confidence also respects the boost (not promoted;
-  // conf loosen failed earlier PF / 60/60 n). See docs/reviews/2026-10-08-score-conf-coherence.md.
+  // 2026-10-21: MIN_CONFIDENCE=0.60 — scoreBoost can matter again for scores 55–59
+  // during boosted hours (was a dead letter at conf 0.65).
 };
 
 export interface TimeGateResult {

@@ -38,11 +38,13 @@ export const V2_CONFIG = {
   // Signal bar T → bullish confirm T+1 → enter T+2 open. Paper tradeEngine pending state.
   ENTRY_CONFIRM_ENABLED: true,
   ENTRY_CONFIRM_MODE: 'bullish_close' as const,
-  MAX_SIGNAL_CLOSE_LOCATION: 0.8,
+  // 2026-10-21 promote: 0.80→0.85 with no_overnight + conf0.60 (dual-split clear).
+  MAX_SIGNAL_CLOSE_LOCATION: 0.85,
 
   // --- Signal ---
   MIN_COMPOSITE_SCORE: 60,                // Was 70 — scoring math caps at ~64 in normal STRONG_UP; 70 only fires on extreme pullbacks
-  MIN_CONFIDENCE: 0.65,
+  // 2026-10-21 promote: 0.65→0.60 with no_overnight + chase0.85 (dual-split clear).
+  MIN_CONFIDENCE: 0.60,
   MIN_CANDLES: 50,
 
   // --- Fees (Kraken) ---

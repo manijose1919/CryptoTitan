@@ -47,6 +47,28 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-21 00:30 UTC — Promote no_overnight + conf0.60 + chase0.85 (dual-split clear) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/config.ts`, `v2/pipeline/timeGate.ts`, `v2/pipeline/pendingConfirmEntry.ts`, confidence/timeGate/promote tests, `scripts/edge-overnight-n-neighborhood-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **yes** — new baseline = restart epoch of paper `:3137` after this promote (open 0; prior cohort pnl −$64.72 / 6 trades kept as pre-promote history)
+
+**What changed:**
+- Overnight neighborhood under locked stack: solo conf0.60 or chase0.85 leave earlier60 n=9; combined **no_ovn_conf060_chase085** clears both fee-aware splits.
+- Paper: `BLOCKED_HOURS=[13,20]` (drop 0–7), `MIN_CONFIDENCE=0.60`, `MAX_SIGNAL_CLOSE_LOCATION=0.85` (synced to `PROMOTE_ENTRY_QUALITY`).
+- 90/45: earlier n=18 PF1.59 +$16.62; OOS n=9 PF1.73 +$8.80. 60/60: earlier n=10 PF1.71 +$9.52; OOS n=13 PF1.67 +$11.62.
+- Soak before restart: open 0; all SIDEWAYS; F&G ~54; dual interlock; `V2_LIVE_CONFIRMED=no`.
+
+**Why:**
+Post scarcity-flip, overnight unblock alone cleared 90/45 but not 60/60 earlier n. Combined conf soften + chase widen is the minimal dual-clear package; Friday block kept.
+
+**What to monitor / watch for:**
+- New fills under overnight hours / conf 0.60–0.64 / chase 0.80–0.85 — fee-aware quality vs pre-promote.
+- Rollback: restore `[0..7,13,20]` + conf0.65 + chase0.80 if soak PF collapses or n-starve returns without quality.
+- See [`docs/reviews/2026-10-21-overnight-conf-chase-promote.md`](docs/reviews/2026-10-21-overnight-conf-chase-promote.md).
+
+---
+
 ## 2026-10-20 12:15 UTC — TimeGate re-test after scarcity flip; null-PF bar fix — cursor-cloud
 
 **Commits:** this branch

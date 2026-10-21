@@ -19,7 +19,7 @@ import { detectEntry } from './entryDetectors.ts';
 
 /**
  * multiStrategy TREND previously gated only on minCompositeScore (60) + TimeGate boost,
- * while live generateSignals also requires MIN_CONFIDENCE=0.65.
+ * while live generateSignals also requires MIN_CONFIDENCE (0.60 as of 2026-10-21).
  */
 describe('multiStrategy TREND MIN_CONFIDENCE parity', () => {
   const strategy = STRATEGY_CONFIGS.TREND;
@@ -38,28 +38,28 @@ describe('multiStrategy TREND MIN_CONFIDENCE parity', () => {
     vi.mocked(applyLongTrendScoreAdjustments).mockReset();
   });
 
-  it('rejects score 62 / conf 0.62 (passes boosted score floor, fails live confidence)', () => {
+  it('rejects score 58 / conf 0.58 (passes boosted score floor, fails live confidence)', () => {
     vi.mocked(applyLongTrendScoreAdjustments).mockReturnValue({
-      compositeScore: 62,
-      confidence: 0.62,
+      compositeScore: 58,
+      confidence: 0.58,
       tcVeto: false,
       bbPenalized: false,
     });
     const r = detectEntry(strategy, candles as any, signals as any, regime);
     expect(r.shouldEnter).toBe(false);
-    expect(V2_CONFIG.MIN_CONFIDENCE).toBe(0.65);
+    expect(V2_CONFIG.MIN_CONFIDENCE).toBe(0.6);
   });
 
-  it('admits score 65 / conf 0.65', () => {
+  it('admits score 60 / conf 0.60', () => {
     vi.mocked(applyLongTrendScoreAdjustments).mockReturnValue({
-      compositeScore: 65,
-      confidence: 0.65,
+      compositeScore: 60,
+      confidence: 0.6,
       tcVeto: false,
       bbPenalized: false,
     });
     const r = detectEntry(strategy, candles as any, signals as any, regime);
     expect(r.shouldEnter).toBe(true);
-    expect(r.confidence).toBe(0.65);
-    expect(r.metadata.compositeScore).toBe(65);
+    expect(r.confidence).toBe(0.6);
+    expect(r.metadata.compositeScore).toBe(60);
   });
 });

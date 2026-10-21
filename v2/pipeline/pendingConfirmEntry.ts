@@ -16,10 +16,10 @@ export interface EntryQualityConfig {
   barIntervalMs: number;
 }
 
-/** Promote-candidate defaults (2026-10-02 robust 90/45 clear). */
+/** Promote-package defaults (2026-10-21 dual-split clear: conf0.60 + chase0.85 + no_overnight). */
 export const PROMOTE_ENTRY_QUALITY: EntryQualityConfig = {
   confirmMode: 'bullish_close',
-  maxSignalCloseLocation: 0.8,
+  maxSignalCloseLocation: 0.85,
   minSignalAtrPercent: 1.5,
   barIntervalMs: 4 * 60 * 60 * 1000,
 };
