@@ -186,7 +186,10 @@ export const STRATEGY_EXIT_CONFIGS: Record<string, StrategyExitConfig> = {
     // exitManager reads THIS value (not V2_CONFIG). Kept in sync with
     // V2_CONFIG.TRAILING_ACTIVATE_PERCENT so backtestEngine ablations match paper.
     trailActivatePercent: 0.014, trailGivebackPercent: 0.03,  // 2026-06-19: 0.01→0.014 (~75% of 1.8% typical TP). At 1%, trail activated in noise zone — reversals still netted below breakeven after fees. At 1.4%, minimum locked-in gross is ~1.35%.
-    timeKillBars: 2, timeKillBarsByTf: { '1h': 4 }, timeKillMinMove: 0.007,  // 2026-07-14: 1h kills at 2 bars were premature — ≥60% of killed 1h trades reached trail activation within 4h (see docs/reviews/2026-07-14-sprint-review.md). 4h keeps 2 bars.
+    // 2026-10-21: 4h timeKillBars 2→4 under promote stack (conf0.60+chase0.85+no_overnight).
+    // Fee-aware dual-split: earlier90 PF1.59→1.90 net +$16.62→+$25.85; earlier60 PF1.71→4.23;
+    // OOS also lifts. Converts premature time_kills into trailing wins. 1h override stays 4.
+    timeKillBars: 4, timeKillBarsByTf: { '1h': 4 }, timeKillMinMove: 0.007,
     quickKillBars: 1, quickKillMinGain: 0.006, quickKillSlMult: 1.2,
     useTrailing: true,
   },

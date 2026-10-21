@@ -47,6 +47,29 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-21 12:15 UTC — Promote TREND timeKillBars 2→4 under promote stack — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/config.ts` (TREND exits), autopsy/exit research scripts, review, CHANGELOG/README; `stats_baseline_time` on paper-3137
+**Stats baseline reset:** **yes** — confirm epoch after exit promote restart (cohort still 0 since morning promote baseline)
+
+**What changed:**
+- Soak ~41945s suspend: dual Watchdog + WS reconnect OK; open 0; paper; `V2_LIVE_CONFIRMED=no`.
+- Autopsy of promote package: overnight entries net-positive; earlier drag is **time_kill**.
+- Exit ablations under promote stack: **tk_4** best dual-split lift (Σ net +$46.56→+$83.62; earlier60 PF 1.71→4.23; OOS also up).
+- Paper: `STRATEGY_EXIT_CONFIGS.TREND.timeKillBars` 2→4 (1h ByTf stays 4).
+- Also set missed morning `stats_baseline_time` to promote restart (was still Oct-6 ADX baseline).
+
+**Why:**
+Longer 4h leash converts premature time_kills into trailing wins under the new entry package; prior exit ablation under *old* locked stack did not show this (different trade set).
+
+**What to monitor / watch for:**
+- New fills: hold length, time_kill rarity, trailing capture vs fee floor.
+- Rollback: `timeKillBars: 2` if soak shows fee-drag from longer losers.
+- See [`docs/reviews/2026-10-21-promote-autopsy-exit-tk4.md`](docs/reviews/2026-10-21-promote-autopsy-exit-tk4.md).
+
+---
+
 ## 2026-10-21 00:30 UTC — Promote no_overnight + conf0.60 + chase0.85 (dual-split clear) — cursor-cloud
 
 **Commits:** this branch

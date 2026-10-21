@@ -60,9 +60,10 @@ function baseTrade(overrides: Partial<BacktestTrade> = {}): BacktestTrade {
 }
 
 describe('backtestEngine exit parity with paper STRATEGY_EXIT_CONFIGS.TREND', () => {
-  it('resolves 4h timeKillBars=2 and trail activate with fee floor (≥ paper 1.4%)', () => {
+  it('resolves 4h timeKillBars (paper=4) and trail activate with fee floor (≥ paper 1.4%)', () => {
     const cfg = resolvePaperTrendExitConfig('4h');
     expect(cfg.timeKillBarsResolved).toBe(STRATEGY_EXIT_CONFIGS.TREND.timeKillBars);
+    expect(STRATEGY_EXIT_CONFIGS.TREND.timeKillBars).toBe(4);
     expect(cfg.trailActivatePercentFloored).toBeGreaterThanOrEqual(
       STRATEGY_EXIT_CONFIGS.TREND.trailActivatePercent,
     );
@@ -73,9 +74,10 @@ describe('backtestEngine exit parity with paper STRATEGY_EXIT_CONFIGS.TREND', ()
     );
   });
 
-  it('resolves 1h timeKillBars from ByTf override (4), not the 4h default (2)', () => {
+  it('resolves 1h timeKillBars from ByTf override (4)', () => {
     const cfg = resolvePaperTrendExitConfig('1h');
     expect(cfg.timeKillBarsResolved).toBe(STRATEGY_EXIT_CONFIGS.TREND.timeKillBarsByTf?.['1h']);
+    expect(cfg.timeKillBarsResolved).toBe(4);
   });
 
   it('exposes paper TREND slAtrMult/tpAtrMult for entry stop/target parity', () => {
@@ -84,27 +86,27 @@ describe('backtestEngine exit parity with paper STRATEGY_EXIT_CONFIGS.TREND', ()
     expect(cfg.tpAtrMult).toBe(STRATEGY_EXIT_CONFIGS.TREND.tpAtrMult);
   });
 
-  it('time-kills after ≥2×4h bars when |move| < minMove (paper bar×tf, not 6h wall clock)', () => {
+  it('time-kills after ≥4×4h bars when |move| < minMove (paper bar×tf, not 6h wall clock)', () => {
     const trade = baseTrade();
     const config = baseConfig({ interval: '4h', intervalMinutes: 240 });
     // Stagnant close: ~−0.35% < 0.7% min move
     const bar = flatBar(trade.entryPrice * 0.9965);
 
-    // After 1 bar: should NOT time-kill yet (paper needs 2)
-    const early = checkExitOnBar(trade, bar, trade.entryBar + 1, config);
+    // After 2 bars: should NOT time-kill yet (paper needs 4 as of 2026-10-21)
+    const early = checkExitOnBar(trade, bar, trade.entryBar + 2, config);
     expect(early.exitReason).not.toBe('time_kill');
 
-    // After 2 bars: SHOULD time-kill
-    const killed = checkExitOnBar(trade, bar, trade.entryBar + 2, config);
+    // After 4 bars: SHOULD time-kill
+    const killed = checkExitOnBar(trade, bar, trade.entryBar + 4, config);
     expect(killed.shouldExit).toBe(true);
     expect(killed.exitReason).toBe('time_kill');
   });
 
-  it('does not time-kill at 2 bars when move exceeds minMove', () => {
+  it('does not time-kill at 4 bars when move exceeds minMove', () => {
     const trade = baseTrade();
     const config = baseConfig({ interval: '4h', intervalMinutes: 240 });
     const bar = flatBar(trade.entryPrice * 1.01); // +1% > 0.7%
-    const result = checkExitOnBar(trade, bar, trade.entryBar + 2, config);
+    const result = checkExitOnBar(trade, bar, trade.entryBar + 4, config);
     expect(result.exitReason).not.toBe('time_kill');
   });
 });
