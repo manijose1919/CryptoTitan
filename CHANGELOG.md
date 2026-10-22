@@ -47,6 +47,27 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-22 12:15 UTC — Residual stop probe; stack still dual-clears — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `scripts/edge-residual-stop-promote-9045.ts`, review, CHANGELOG/README
+**Stats baseline reset:** **no**
+
+**What changed:**
+- Soak ~41564s suspend: WS reconnect + Watchdog benign skip; open 0; cohort 0; paper; `V2_LIVE_CONFIRMED=no`.
+- Calendar refresh under vol≥0.20 stack: dual-split still clears (90/45 PF7.04/2.48; 60/60 PF4.23/2.89).
+- Residual stops = ETH + LINK only (BNB cut by vol floor); no shared gateable feature.
+- chase≤0.80 / maxSignalATR≤2.2 fail n; sl_atr_12 dual but earlier nets down; trail_gb_02 micro +$2.73 — **not promoted**.
+
+**Why:**
+Hunt next fee-aware lift after vol floor without inventing a stop gate from n=2.
+
+**What to monitor / watch for:**
+- First post-baseline STRONG_UP fills under overnight+conf0.60+chase0.85+tk4+vol0.20.
+- See [`docs/reviews/2026-10-22-residual-stop-probe.md`](docs/reviews/2026-10-22-residual-stop-probe.md).
+
+---
+
 ## 2026-10-22 00:30 UTC — Promote MIN_SIGNAL_VOLUME_RATIO=0.20 — cursor-cloud
 
 **Commits:** this branch

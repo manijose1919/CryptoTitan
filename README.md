@@ -121,6 +121,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-22:** Full promote stack stress — **90/45, 60/60, 120/60, 150/75 all PASS**. Stop autopsy → **promoted** `MIN_SIGNAL_VOLUME_RATIO=0.20` (cuts BNB vol≈0.16 stop; dual-clear; 0.25/0.30 starve earlier60 n). See [`docs/reviews/2026-10-22-promote-stack-stress.md`](docs/reviews/2026-10-22-promote-stack-stress.md), [`docs/reviews/2026-10-22-vol-floor-promote.md`](docs/reviews/2026-10-22-vol-floor-promote.md).
 
+**2026-10-22 midday:** Residual stops (ETH/LINK) have no shared gate; chase/ATR tighten fail n; trail_gb micro only — **no config change**. Dual-split still clears under vol0.20 stack. See [`docs/reviews/2026-10-22-residual-stop-probe.md`](docs/reviews/2026-10-22-residual-stop-probe.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
