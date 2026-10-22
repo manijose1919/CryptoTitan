@@ -286,20 +286,28 @@ export function generateSignals(
     const tg = checkTimeGate(lastCandleTime);
     const adjustedThreshold = V2_CONFIG.MIN_COMPOSITE_SCORE - tg.scoreBoost;
 
+    const volRatio = signals.volume_ratio as number;
+    const minVol = (V2_CONFIG as { MIN_SIGNAL_VOLUME_RATIO?: number }).MIN_SIGNAL_VOLUME_RATIO;
+    const volOk = minVol == null || (Number.isFinite(volRatio) && volRatio >= minVol);
+
     const passed = tg.allow
                 && compositeScore >= adjustedThreshold
-                && confidence >= V2_CONFIG.MIN_CONFIDENCE;
+                && confidence >= V2_CONFIG.MIN_CONFIDENCE
+                && volOk;
 
     const activeSignals = evals.filter((e) => e.active).map((e) => e.name);
     const bbNote = pctB > 0.95 ? `, BB%B=${pctB.toFixed(2)}(penalty)` : '';
     const tcNote = tcVeto ? `, TC=${tcVal.toFixed(1)}(sell-zone)` : '';
     const confNote = confidence < V2_CONFIG.MIN_CONFIDENCE ? `, conf=${confidence.toFixed(2)}<${V2_CONFIG.MIN_CONFIDENCE}` : '';
+    const volNote = !volOk ? `, vol=${Number(volRatio).toFixed(2)}<${minVol}` : '';
     const tgNote = !tg.allow ? `, TimeGate=${tg.reason}` : (tg.scoreBoost > 0 ? `, TimeGate=${tg.reason}(thresh ${adjustedThreshold})` : '');
     const reason = !tg.allow
       ? `REJECT: TimeGate ${tg.reason} (score=${compositeScore.toFixed(1)} ignored)`
+      : !volOk
+        ? `REJECT: volume_ratio ${Number(volRatio).toFixed(3)} < min ${minVol} (score=${compositeScore.toFixed(1)})`
       : passed
         ? `PASS: score=${compositeScore.toFixed(1)}, active=[${activeSignals.join(', ')}]${bbNote}${tcNote}${maturityNote}${tgNote}`
-        : `REJECT: score=${compositeScore.toFixed(1)} < min ${adjustedThreshold}${bbNote}${tcNote}${confNote}${maturityNote}${tgNote}`;
+        : `REJECT: score=${compositeScore.toFixed(1)} < min ${adjustedThreshold}${bbNote}${tcNote}${confNote}${volNote}${maturityNote}${tgNote}`;
 
     results.push({
       ticker: scan.ticker,

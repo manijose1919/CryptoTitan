@@ -47,23 +47,25 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
-## 2026-10-22 00:15 UTC — Promote-stack longer-window stress (allPass) — cursor-cloud
+## 2026-10-22 00:30 UTC — Promote MIN_SIGNAL_VOLUME_RATIO=0.20 — cursor-cloud
 
 **Commits:** this branch
-**Files changed:** `scripts/edge-promote-stack-stress-9045.ts`, review, CHANGELOG/README
-**Stats baseline reset:** **no**
+**Files changed:** `v2/engine/config.ts`, `v2/pipeline/signalGenerator.ts`, tests, stop/vol research scripts, reviews, CHANGELOG/README
+**Stats baseline reset:** **yes** — restart epoch after vol-floor wire
 
 **What changed:**
-- Soak ~41822s suspend: WS reconnect + Watchdog benign skip; open 0; cohort 0; paper; `V2_LIVE_CONFIRMED=no`.
-- Full promote stack (entry + tk4) fee-aware stress: **90/45, 60/60, 120/60, 150/75 all PASS**.
-- Strongest residual drag remains stop_loss on longer OOS — no config change this cycle.
+- Soak ~41822s suspend recovered; open 0; cohort 0; paper; `V2_LIVE_CONFIRMED=no`.
+- Longer-window stress of entry+tk4: **90/45, 60/60, 120/60, 150/75 all PASS**.
+- Stop autopsy: BNB stop at volume_ratio≈0.16. Vol floor probe: **0.20 dual-clears** (earlier90 PF 3.17→7.04; earlier60 n=10 PF4.23); 0.25/0.30 starve earlier60 n=9.
+- Paper: `MIN_SIGNAL_VOLUME_RATIO=0.20` enforced in `generateSignals`.
 
 **Why:**
-Confirm dual-split clear is not a short-window artifact before further entry/exit knobs.
+Tighten-only cut of the known thin-volume BNB stop under an already dual-clear stack, without n-starve.
 
 **What to monitor / watch for:**
-- First post-baseline STRONG_UP fills under overnight + conf0.60 + chase0.85 + tk4.
-- See [`docs/reviews/2026-10-22-promote-stack-stress.md`](docs/reviews/2026-10-22-promote-stack-stress.md).
+- Rejects logged as `volume_ratio … < min 0.20`; soak n vs quality.
+- Rollback: remove / raise gate if n collapses.
+- See [`docs/reviews/2026-10-22-promote-stack-stress.md`](docs/reviews/2026-10-22-promote-stack-stress.md), [`docs/reviews/2026-10-22-vol-floor-promote.md`](docs/reviews/2026-10-22-vol-floor-promote.md).
 
 ---
 

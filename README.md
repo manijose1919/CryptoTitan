@@ -119,7 +119,7 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-21 midday:** Autopsy under promote stack — overnight not the drag; **time_kill** is. **Promoted** TREND `timeKillBars` 2→4 (dual-split Σ net +$47→+$84). See [`docs/reviews/2026-10-21-promote-autopsy-exit-tk4.md`](docs/reviews/2026-10-21-promote-autopsy-exit-tk4.md).
 
-**2026-10-22:** Full promote stack stress — **90/45, 60/60, 120/60, 150/75 all PASS** (fee-aware). No config change; soak for STRONG_UP. See [`docs/reviews/2026-10-22-promote-stack-stress.md`](docs/reviews/2026-10-22-promote-stack-stress.md).
+**2026-10-22:** Full promote stack stress — **90/45, 60/60, 120/60, 150/75 all PASS**. Stop autopsy → **promoted** `MIN_SIGNAL_VOLUME_RATIO=0.20` (cuts BNB vol≈0.16 stop; dual-clear; 0.25/0.30 starve earlier60 n). See [`docs/reviews/2026-10-22-promote-stack-stress.md`](docs/reviews/2026-10-22-promote-stack-stress.md), [`docs/reviews/2026-10-22-vol-floor-promote.md`](docs/reviews/2026-10-22-vol-floor-promote.md).
 
 **Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
 

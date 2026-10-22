@@ -47,15 +47,16 @@ describe('passesSignalAtrBand', () => {
 });
 
 describe('passesMinVolumeRatio', () => {
-  it('rejects below min volume_ratio', () => {
-    const r = passesMinVolumeRatio(0.16, { minVolumeRatio: 0.3 });
+  it('rejects below paper min volume_ratio 0.20', () => {
+    const r = passesMinVolumeRatio(0.16, { minVolumeRatio: 0.2 });
     expect(r.ok).toBe(false);
     expect(r.reason).toMatch(/volume_ratio/);
   });
 
-  it('allows at/above min', () => {
-    expect(passesMinVolumeRatio(0.5, { minVolumeRatio: 0.3 }).ok).toBe(true);
-    expect(passesMinVolumeRatio(0.3, { minVolumeRatio: 0.3 }).ok).toBe(true);
+  it('allows at/above paper min 0.20', () => {
+    expect(passesMinVolumeRatio(0.5, { minVolumeRatio: 0.2 }).ok).toBe(true);
+    expect(passesMinVolumeRatio(0.2, { minVolumeRatio: 0.2 }).ok).toBe(true);
+    expect(passesMinVolumeRatio(0.19, { minVolumeRatio: 0.2 }).ok).toBe(false);
   });
 
   it('no-ops when unset', () => {

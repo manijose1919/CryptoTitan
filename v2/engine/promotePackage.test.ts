@@ -30,4 +30,8 @@ describe('2026-10-05 STRONG_UP+confirm package (ADX-parity rollback)', () => {
     expect(V2_CONFIG.MODE).not.toBe('live');
     expect(process.env.V2_LIVE_CONFIRMED).not.toBe('yes');
   });
+
+  it('keeps signal volume_ratio floor at 0.20 (2026-10-22 BNB-stop cut)', () => {
+    expect((V2_CONFIG as { MIN_SIGNAL_VOLUME_RATIO: number }).MIN_SIGNAL_VOLUME_RATIO).toBe(0.2);
+  });
 });

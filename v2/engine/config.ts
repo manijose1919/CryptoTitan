@@ -45,6 +45,9 @@ export const V2_CONFIG = {
   MIN_COMPOSITE_SCORE: 60,                // Was 70 — scoring math caps at ~64 in normal STRONG_UP; 70 only fires on extreme pullbacks
   // 2026-10-21 promote: 0.65→0.60 with no_overnight + chase0.85 (dual-split clear).
   MIN_CONFIDENCE: 0.60,
+  // 2026-10-22 promote: signal volume_ratio floor (cuts BNB stop ≈0.16). Dual-clear
+  // at 0.20 under promote stack; 0.25/0.30 starve earlier60 n=9.
+  MIN_SIGNAL_VOLUME_RATIO: 0.20,
   MIN_CANDLES: 50,
 
   // --- Fees (Kraken) ---
