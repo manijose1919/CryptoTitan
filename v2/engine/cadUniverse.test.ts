@@ -39,7 +39,7 @@ describe('Canadian trading universe', () => {
     // 2026-10-23: UP re-enabled under full promote stack; keep confirm + ATR band
     expect(V2_CONFIG.ALLOWED_REGIMES).toEqual(['STRONG_UP', 'UP']);
     expect((V2_CONFIG as { ENTRY_CONFIRM_ENABLED?: boolean }).ENTRY_CONFIRM_ENABLED).toBe(true);
-    expect(V2_CONFIG.MAX_ATR_PERCENT).toBe(2.5);
+    expect(V2_CONFIG.MAX_ATR_PERCENT).toBe(2.8);
     expect(V2_CONFIG.MIN_ATR_PERCENT).toBe(1.5);
     expect(V2_CONFIG.PAPER_SLIPPAGE_PER_SIDE).toBe(0.0005);
   });

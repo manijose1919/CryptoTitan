@@ -125,6 +125,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-23:** **Promoted UP** under full quality stack (confirm+ADX20+vol0.20+tk4+overnight+conf0.60+chase0.85) — dual-split + 120/60 + 150/75 all PASS. UP remains 4h-only; MOMENTUM stays STRONG_UP-only. See [`docs/reviews/2026-10-23-up-promote-stack.md`](docs/reviews/2026-10-23-up-promote-stack.md).
 
+**2026-10-23 midday:** ATR-band neighborhood under UP stack — minATR soften fails earlier60 PF (**keep 1.5**); **promoted** `MAX_ATR_PERCENT` 2.5→2.8 (dual + longer stress all PASS). See [`docs/reviews/2026-10-23-atr-band-max28-promote.md`](docs/reviews/2026-10-23-atr-band-max28-promote.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. UP only with confirm + full quality stack. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

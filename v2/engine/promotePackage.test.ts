@@ -13,7 +13,7 @@ describe('2026-10-23 STRONG_UP+UP promote package (full quality stack)', () => {
     expect((V2_CONFIG as { MAX_SIGNAL_CLOSE_LOCATION: number }).MAX_SIGNAL_CLOSE_LOCATION).toBe(
       PROMOTE_ENTRY_QUALITY.maxSignalCloseLocation,
     );
-    expect(V2_CONFIG.MAX_ATR_PERCENT).toBe(2.5);
+    expect(V2_CONFIG.MAX_ATR_PERCENT).toBe(2.8);
     expect(V2_CONFIG.MIN_ATR_PERCENT).toBe(PROMOTE_ENTRY_QUALITY.minSignalAtrPercent);
     expect(PROMOTE_ENTRY_QUALITY.barIntervalMs).toBe(4 * 60 * 60 * 1000);
   });

@@ -47,6 +47,28 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-23 12:15 UTC — Promote MAX_ATR 2.5→2.8 under UP stack — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/config.ts` (MAX_ATR_PERCENT), promote/cadUniverse tests, ATR neighborhood+stress scripts, review, CHANGELOG/README
+**Stats baseline reset:** **yes** — restart epoch after MAX_ATR promote
+
+**What changed:**
+- Soak: open 0; BNB UP ATR%0.84&lt;min1.5; DOT UP ATR%2.78&gt;max2.5; ~41641s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`.
+- ATR-band neighborhood under UP+full stack: minATR 1.2/1.0 **fails** earlier60 PF — keep floor 1.5.
+- maxATR 2.8 dual-clears (Σnet $198 vs paper $158) and passes 120/60 + 150/75 (`max28AllPass`).
+- Paper: `MAX_ATR_PERCENT=2.8` (min stays 1.5).
+
+**Why:**
+DOT/ADA-style high-ATR UP near-misses under the full quality stack; prior keep-2.5 (2026-10-05/06) was under weaker STRONG_UP-only packages. Fee-aware CAD10 evidence, not ticker cherry-pick.
+
+**What to monitor / watch for:**
+- First fills with signal ATR% in (2.5, 2.8]; stop_loss rate vs post-UP baseline
+- BNB still correctly blocked when ATR% &lt; 1.5
+- Rollback: `MAX_ATR_PERCENT=2.5` if high-ATR soak fills show fee-drag / PF collapse
+
+---
+
 ## 2026-10-23 00:30 UTC — Promote UP under full quality stack — cursor-cloud
 
 **Commits:** this branch

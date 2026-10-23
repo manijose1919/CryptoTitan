@@ -21,7 +21,10 @@ export const V2_CONFIG = {
   MIN_VOLUME_24H_USD: 500_000,
   // 2026-10-03: minATR 1.0→1.5 with confirm+chase+MAX_ATR=2.5 (UP later rolled back 2026-10-05).
   MIN_ATR_PERCENT: 1.5,
-  MAX_ATR_PERCENT: 2.5,
+  // 2026-10-23: MAX 2.5→2.8 under UP+full quality stack (dual-split + 120/60 + 150/75).
+  // minATR soften 1.2/1.0 fails earlier60 PF — keep floor 1.5. Prior 2026-10-05/06
+  // MAX raise fails were under weaker STRONG_UP-only / ADX-parity packages.
+  MAX_ATR_PERCENT: 2.8,
   MAX_SPREAD_PERCENT: 0.15,
 
   // --- Regime ---
