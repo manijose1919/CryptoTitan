@@ -27,6 +27,7 @@ describe('multiStrategy TREND MIN_CONFIDENCE parity', () => {
   const signals = {
     close_price: 100,
     atr_percent: 2,
+    volume_ratio: 0.5,
     macd_histogram: 1,
     sr_channel_position: 0.5,
     bb_percent_b: 0.7,
@@ -61,5 +62,18 @@ describe('multiStrategy TREND MIN_CONFIDENCE parity', () => {
     expect(r.shouldEnter).toBe(true);
     expect(r.confidence).toBe(0.6);
     expect(r.metadata.compositeScore).toBe(60);
+  });
+
+  it('rejects thin volume_ratio below paper MIN_SIGNAL_VOLUME_RATIO=0.20', () => {
+    vi.mocked(applyLongTrendScoreAdjustments).mockReturnValue({
+      compositeScore: 60,
+      confidence: 0.6,
+      tcVeto: false,
+      bbPenalized: false,
+    });
+    const thin = { ...signals, volume_ratio: 0.16 };
+    const r = detectEntry(strategy, candles as any, thin as any, regime);
+    expect(r.shouldEnter).toBe(false);
+    expect((V2_CONFIG as { MIN_SIGNAL_VOLUME_RATIO: number }).MIN_SIGNAL_VOLUME_RATIO).toBe(0.2);
   });
 });

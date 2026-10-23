@@ -25,11 +25,11 @@ export const V2_CONFIG = {
   MAX_SPREAD_PERCENT: 0.15,
 
   // --- Regime ---
-  // 2026-10-05: rolled back to STRONG_UP-only. The 2026-10-03 UP+confirm promote
-  // cleared robust 90/45 *without* paper ADX≥20; with minAdx=20 it fails
-  // (OOS PF≈0.87 / −$3.70). UP trades under ADX are the drag; STRONG_UP+confirm
-  // stays PF-positive but n-starved. Do not re-enable UP without ADX-parity clear.
-  ALLOWED_REGIMES: ['STRONG_UP'] as const,
+  // 2026-10-23: re-enable UP under full promote stack (confirm+ADX20+chase0.85+
+  // conf0.60+vol0.20+tk4+no_overnight). Fee-aware dual-split + 120/60 + 150/75 all
+  // PASS. Prior 2026-10-05 ADX-parity rollback was under weaker entry/exit package.
+  // MOMENTUM stays STRONG_UP-only (its own ALLOWED_REGIMES). UP still 4h-only below.
+  ALLOWED_REGIMES: ['STRONG_UP', 'UP'] as const,
   // 2026-07-21: UP+1h is a proven loser all-time (n=25, 40% WR, -$1.05/trade).
   // STRONG_UP+1h works (60% WR, +$0.45/trade). Restrict UP to 4h only.
   REGIME_TIMEFRAME_RESTRICT: { 'UP': ['4h'] } as Record<string, string[]>,

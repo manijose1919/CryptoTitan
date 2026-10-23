@@ -123,7 +123,9 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-22 midday:** Residual stops (ETH/LINK) have no shared gate; chase/ATR tighten fail n; trail_gb micro only — **no config change**. Dual-split still clears under vol0.20 stack. See [`docs/reviews/2026-10-22-residual-stop-probe.md`](docs/reviews/2026-10-22-residual-stop-probe.md).
 
-**Decision:** stay paper-only. Do not cherry-pick tickers. Do not enable UP without confirm. Stats baseline reset on `:3137` when this package was deployed.
+**2026-10-23:** **Promoted UP** under full quality stack (confirm+ADX20+vol0.20+tk4+overnight+conf0.60+chase0.85) — dual-split + 120/60 + 150/75 all PASS. UP remains 4h-only; MOMENTUM stays STRONG_UP-only. See [`docs/reviews/2026-10-23-up-promote-stack.md`](docs/reviews/2026-10-23-up-promote-stack.md).
+
+**Decision:** stay paper-only. Do not cherry-pick tickers. UP only with confirm + full quality stack. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
 

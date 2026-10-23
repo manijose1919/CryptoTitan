@@ -47,6 +47,28 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-23 00:30 UTC — Promote UP under full quality stack — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/config.ts` (ALLOWED_REGIMES), promote/cadUniverse tests, multiStrategy vol parity, UP research scripts, review, CHANGELOG/README
+**Stats baseline reset:** **yes** — restart epoch after UP promote
+
+**What changed:**
+- Soak ~41923s suspend recovered; open 0; cohort 0; risk-off DOWN/SIDEWAYS; paper; `V2_LIVE_CONFIRMED=no`.
+- UP+full promote stack dual-clears and passes 120/60 + 150/75 (`allPass`).
+- Paper: `ALLOWED_REGIMES=['STRONG_UP','UP']` (UP still 4h-only); MOMENTUM remains STRONG_UP-only.
+- multiStrategy TREND now enforces `MIN_SIGNAL_VOLUME_RATIO` like live `generateSignals`.
+
+**Why:**
+Prior UP rollback (2026-10-05) was under weaker entry/exit package. With overnight+conf0.60+chase0.85+vol0.20+tk4+ADX20, UP lifts earlier n/net and still clears fee-aware bars. Note OOS45 UP segment thin (−$0.51 n=4).
+
+**What to monitor / watch for:**
+- UP vs STRONG_UP fill quality / fee drag on soak.
+- Rollback: STRONG_UP-only if UP cohort expectancy collapses.
+- See [`docs/reviews/2026-10-23-up-promote-stack.md`](docs/reviews/2026-10-23-up-promote-stack.md).
+
+---
+
 ## 2026-10-22 12:15 UTC — Residual stop probe; stack still dual-clears — cursor-cloud
 
 **Commits:** this branch

@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { V2_CONFIG } from './config.ts';
 import { PROMOTE_ENTRY_QUALITY } from '../pipeline/pendingConfirmEntry.ts';
 
-describe('2026-10-05 STRONG_UP+confirm package (ADX-parity rollback)', () => {
-  it('keeps STRONG_UP-only with confirm + ATR band + chase defaults', () => {
-    // UP removed 2026-10-05: promote+ADX20 failed robust 90/45
-    expect([...V2_CONFIG.ALLOWED_REGIMES]).toEqual(['STRONG_UP']);
+describe('2026-10-23 STRONG_UP+UP promote package (full quality stack)', () => {
+  it('allows STRONG_UP+UP with confirm + ATR band + chase defaults', () => {
+    // UP re-enabled 2026-10-23 under confirm+ADX20+vol0.20+tk4+overnight package
+    expect([...V2_CONFIG.ALLOWED_REGIMES]).toEqual(['STRONG_UP', 'UP']);
     expect((V2_CONFIG as { ENTRY_CONFIRM_ENABLED: boolean }).ENTRY_CONFIRM_ENABLED).toBe(true);
     expect((V2_CONFIG as { ENTRY_CONFIRM_MODE: string }).ENTRY_CONFIRM_MODE).toBe(
       PROMOTE_ENTRY_QUALITY.confirmMode,

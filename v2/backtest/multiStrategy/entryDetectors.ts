@@ -136,6 +136,10 @@ function detectTrend(
   // Live generateSignals also requires MIN_CONFIDENCE (0.60 as of 2026-10-21).
   // Without this, multiStrategy TREND admitted scores that pass minComposite but fail paper conf.
   if (confidence < V2_CONFIG.MIN_CONFIDENCE) return NO_ENTRY;
+  // Live generateSignals also requires MIN_SIGNAL_VOLUME_RATIO (0.20 as of 2026-10-22).
+  const minVol = (V2_CONFIG as { MIN_SIGNAL_VOLUME_RATIO?: number }).MIN_SIGNAL_VOLUME_RATIO;
+  const volRatio = signals.volume_ratio as number;
+  if (minVol != null && !(Number.isFinite(volRatio) && volRatio >= minVol)) return NO_ENTRY;
 
   const price = signals.close_price as number;
   const atr = atrDollar(signals);
