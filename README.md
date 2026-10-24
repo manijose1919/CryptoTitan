@@ -129,6 +129,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-24:** After MAX_ATR 2.8, soak DOT scan-PASS then ADX 17.3&lt;20. **Promoted** `ADX_THRESHOLDS.TREND_MIN` 20→15 (dual + longer stress all PASS; ADX18 clears but would not unblock 17.3; keep floor). See [`docs/reviews/2026-10-24-adx15-promote.md`](docs/reviews/2026-10-24-adx15-promote.md).
 
+**2026-10-24 midday:** Risk-off soak. Exit knobs under ADX15 stack — trail_gb micro only (**no promote**). Short refresh clears 90/45 but fails 60/60 (**shorts stay off**). See [`docs/reviews/2026-10-24-exit-short-refresh.md`](docs/reviews/2026-10-24-exit-short-refresh.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. UP only with confirm + full quality stack. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

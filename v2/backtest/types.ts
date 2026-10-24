@@ -43,7 +43,7 @@ export interface BacktestConfig {
     /** Reject if signal atr_percent is above this (local cap; research alternative to mutating V2_CONFIG). */
     maxSignalAtrPercent?: number;
     /**
-     * Paper `strategyRunner` ADX gate parity (ADX_THRESHOLDS.TREND_MIN, default 20).
+     * Paper `strategyRunner` ADX gate parity (ADX_THRESHOLDS.TREND_MIN, currently 15).
      * Unset = backtest does not apply ADX (legacy research path).
      */
     minAdx?: number;

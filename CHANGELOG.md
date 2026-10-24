@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-24 12:15 UTC — Exit + short refresh under ADX15 (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** exit/short research scripts, review, CHANGELOG/README
+**Stats baseline reset:** **no** — research only
+
+**What changed:**
+- Soak risk-off (no UP/STRONG_UP); ~41479s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`.
+- Exit knobs under UP+ADX15+MAX2.8: trail_gb 0.02 dual-PASS but only +$5.67 Σnet vs paper — **not promoted**.
+- Short refresh (ADX15+ATR2.8+chase0.85): 90/45 PASS (strong) but 60/60 FAIL (earlier n=9 PF0.23) — **shorts stay off**.
+
+**Why:**
+Risk-off soak has no long fills; probed exits and shorts for fee-aware edge without casually loosening long risk gates.
+
+**What to monitor / watch for:**
+- First post-ADX15 UP/STRONG_UP fills when regimes return
+- Do not enable shorts without a 60/60 clear; do not ship micro trail_gb alone
+
+---
+
 ## 2026-10-24 00:20 UTC — Promote ADX TREND_MIN 20→15 under UP stack — cursor-cloud
 
 **Commits:** this branch
