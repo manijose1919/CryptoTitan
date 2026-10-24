@@ -243,7 +243,10 @@ export const STRATEGY_COOLDOWN_MS: Record<string, number> = {
 // ADX < MR_MAX: ranging / choppy → run MEAN_REVERSION signals only
 // Between: dead zone, skip both (neither strategy has edge here)
 export const ADX_THRESHOLDS = {
-  TREND_MIN: 20,  // 2026-06-27: 25→20. Catches emerging trends earlier. Was too strict — 1 trade in 9 days at 25.
+  // 2026-06-27: 25→20. 2026-10-24: 20→15 under UP+full stack (dual-split + 120/60 +
+  // 150/75). Soak: DOT scan-PASS ATR%~2.79 then ADX 17.3<20. ADX18 also clears but
+  // would not unblock 17.3; ADX-off clears too — keep a floor at 15.
+  TREND_MIN: 15,
   MR_MAX: 20,
 } as const;
 

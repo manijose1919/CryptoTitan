@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { V2_CONFIG } from './config.ts';
+import { ADX_THRESHOLDS, V2_CONFIG } from './config.ts';
 import { PROMOTE_ENTRY_QUALITY } from '../pipeline/pendingConfirmEntry.ts';
 
 describe('2026-10-23 STRONG_UP+UP promote package (full quality stack)', () => {
@@ -33,5 +33,9 @@ describe('2026-10-23 STRONG_UP+UP promote package (full quality stack)', () => {
 
   it('keeps signal volume_ratio floor at 0.20 (2026-10-22 BNB-stop cut)', () => {
     expect((V2_CONFIG as { MIN_SIGNAL_VOLUME_RATIO: number }).MIN_SIGNAL_VOLUME_RATIO).toBe(0.2);
+  });
+
+  it('keeps ADX TREND_MIN at 15 (2026-10-24 soak ADX 17.3 unblock)', () => {
+    expect(ADX_THRESHOLDS.TREND_MIN).toBe(15);
   });
 });

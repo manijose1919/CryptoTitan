@@ -47,6 +47,28 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-24 00:20 UTC — Promote ADX TREND_MIN 20→15 under UP stack — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/engine/config.ts` (ADX_THRESHOLDS.TREND_MIN), promotePackage test, ADX neighborhood+stress scripts, review, CHANGELOG/README
+**Stats baseline reset:** **yes** — restart epoch after ADX15 promote
+
+**What changed:**
+- Soak ~41369s suspend recovered; open 0; cohort 0; paper; `V2_LIVE_CONFIRMED=no`.
+- Post-MAX_ATR2.8: DOT scan-PASS then ADX 17.3&lt;20 block; later ATR% 2.805&gt;2.8.
+- ADX 18/15/off all dual-clear under UP+ATR1.5–2.8 stack; 18/15 pass 120/60 + 150/75.
+- Paper: `ADX_THRESHOLDS.TREND_MIN=15` (keep floor; ADX18 would not unblock soak 17.3).
+
+**Why:**
+Binding soak gate after ATR band raise was ADX, not MAX_ATR. Fee-aware CAD10 evidence under full quality stack — not ticker cherry-pick.
+
+**What to monitor / watch for:**
+- Fills with signal ADX in [15, 20); stop_loss rate vs post-MAX_ATR baseline
+- MOMENTUM/BREAKOUT still share the same TREND_MIN gate
+- Rollback: `TREND_MIN=20` if low-ADX soak fills show fee-drag / PF collapse
+
+---
+
 ## 2026-10-23 12:15 UTC — Promote MAX_ATR 2.5→2.8 under UP stack — cursor-cloud
 
 **Commits:** this branch

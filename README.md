@@ -127,6 +127,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-23 midday:** ATR-band neighborhood under UP stack — minATR soften fails earlier60 PF (**keep 1.5**); **promoted** `MAX_ATR_PERCENT` 2.5→2.8 (dual + longer stress all PASS). See [`docs/reviews/2026-10-23-atr-band-max28-promote.md`](docs/reviews/2026-10-23-atr-band-max28-promote.md).
 
+**2026-10-24:** After MAX_ATR 2.8, soak DOT scan-PASS then ADX 17.3&lt;20. **Promoted** `ADX_THRESHOLDS.TREND_MIN` 20→15 (dual + longer stress all PASS; ADX18 clears but would not unblock 17.3; keep floor). See [`docs/reviews/2026-10-24-adx15-promote.md`](docs/reviews/2026-10-24-adx15-promote.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. UP only with confirm + full quality stack. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.
