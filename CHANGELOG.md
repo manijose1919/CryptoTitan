@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-25 00:15 UTC — minATR + conf under ADX15 (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** minATR/conf research scripts, review, CHANGELOG/README
+**Stats baseline reset:** **no** — research only
+
+**What changed:**
+- Soak: BNB UP ATR%0.99&lt;1.5; ~42268s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`.
+- minATR 1.35 dual-PASS but worse Σnet; 1.25/1.2/1.0 fail earlier60 PF — **keep 1.5**.
+- conf 0.55–0.65 all dual-PASS; paper 0.60 best Σnet ($211) — **keep 0.60**.
+
+**Why:**
+Recurring BNB low-ATR UP near-miss under ADX15+MAX2.8; re-tested soften after gate package change. Soften still loses to paper.
+
+**What to monitor / watch for:**
+- BNB (or peers) UP with ATR% ≥1.5 for first post-ADX15 fill
+- Do not lower minATR for sub-1.0 soak alone
+
+---
+
 ## 2026-10-24 12:15 UTC — Exit + short refresh under ADX15 (no promote) — cursor-cloud
 
 **Commits:** this branch
