@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-25 12:15 UTC — ATR-rise diag + chase under ADX15 (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** atr-rise/chase research scripts, review, CHANGELOG/README
+**Stats baseline reset:** **no** — research only
+
+**What changed:**
+- Soak: BNB UP ATR%~0.99&lt;1.5 multi-day; ~41551s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`.
+- ATR-rise cooldown: OOS45 confirm-eligible after rise = **0** — **shelve** (do not delay-enter / do not lower minATR).
+- Chase neighborhood: paper 0.85 best among 0.80–0.95; chase-off +$13 Σnet but removes gate — **keep 0.85**.
+
+**Why:**
+BNB stuck below minATR; tested waiting for ATR to rise into band vs loosening chase. Neither yields a promote-quality path.
+
+**What to monitor / watch for:**
+- First in-band UP/STRONG_UP fill under ADX15+MAX2.8
+- Do not remove chase for Σnet alone; do not wire ATR-rise delay without OOS confirm-eligible n
+
+---
+
 ## 2026-10-25 00:15 UTC — minATR + conf under ADX15 (no promote) — cursor-cloud
 
 **Commits:** this branch
