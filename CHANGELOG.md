@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-26 00:20 UTC — vol neighborhood + ADX15 stack stress (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** vol/stress research scripts, review, CHANGELOG/README
+**Stats baseline reset:** **no** — research only
+
+**What changed:**
+- Soak: BNB UP ATR%~0.944&lt;1.5; ~41626s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`; cohort 0 / open 0.
+- Vol floor neighborhood under UP+ADX15+MAX2.8: paper **0.20** Σnet $215.5; vol 0.30 only +$0.68 with n-starve — **keep 0.20**.
+- Stress 90/45 + 60/60 + 120/60 + 150/75 all **PASS** on current paper stack.
+
+**Why:**
+Reconfirm volume gate and long-horizon stress after ADX15+MAX2.8 package; avoid promoting micro edges.
+
+**What to monitor / watch for:**
+- First in-band UP/STRONG_UP fill (ATR% ≥1.5)
+- Do not raise vol floor for +$1 Σnet alone
+
+---
+
 ## 2026-10-25 12:15 UTC — ATR-rise diag + chase under ADX15 (no promote) — cursor-cloud
 
 **Commits:** this branch
