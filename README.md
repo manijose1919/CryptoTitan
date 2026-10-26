@@ -137,6 +137,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-26:** Vol floor under ADX15+MAX2.8 — paper 0.20 best practical Σnet; 0.30 micro-only (**keep 0.20**). Stack stress 90/45→150/75 all PASS. See [`docs/reviews/2026-10-26-vol-stack-stress-adx15.md`](docs/reviews/2026-10-26-vol-stack-stress-adx15.md).
 
+**2026-10-26 midday:** Scarcity — recent30 only ~28 ADX+ATR-band+vol bars; confirm ablation keeps `bullish_close`+mom (mom-off micro-only; confirm-off fails). See [`docs/reviews/2026-10-26-scarcity-confirm-adx15.md`](docs/reviews/2026-10-26-scarcity-confirm-adx15.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. UP only with confirm + full quality stack. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

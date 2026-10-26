@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-26 12:15 UTC — scarcity + confirm ablation under ADX15 (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** scarcity/confirm research scripts, review, CHANGELOG/README
+**Stats baseline reset:** **no** — research only
+
+**What changed:**
+- Soak: BNB UP ATR%~0.99&lt;1.5; ~41688s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`.
+- Scarcity: recent30 only **28** ADX+ATR-band+vol bars; **72** UP+ADX lowATR near-misses — explains sterile soak.
+- Confirm ablation: paper `bullish_close`+mom best practical; mom-off / close_above micro-only; confirm-off fails OOS PF — **keep paper confirm**.
+
+**Why:**
+Entry softens exhausted; quantified fill expectancy and re-checked quality confirm gates under ADX15+MAX2.8.
+
+**What to monitor / watch for:**
+- First in-band UP/STRONG_UP (ATR% ≥1.5)
+- Do not drop confirmMomentum or confirmMode for +$1–2 Σnet
+
+---
+
 ## 2026-10-26 00:20 UTC — vol neighborhood + ADX15 stack stress (no promote) — cursor-cloud
 
 **Commits:** this branch
