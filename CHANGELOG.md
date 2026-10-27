@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-27 12:15 UTC — fee/slip sensitivity on ADX15 stack (informational) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** fee-slip research script, review, CHANGELOG/README
+**Stats baseline reset:** **no** — research only
+
+**What changed:**
+- Soak: BNB UP ATR%~0.99&lt;1.5; ~41096s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`.
+- Fee/slip grid on locked stack: paper 52/5 dual-PASS Σnet~$218; stress 60bps+10bps still dual-PASS ($169).
+- Keep conservative paper fill assumptions (do not assume maker fills).
+
+**Why:**
+Entry softens + alternate families exhausted; quantify how fragile the locked edge is to fill costs while soak stays sterile.
+
+**What to monitor / watch for:**
+- First in-band UP/STRONG_UP paper fill
+- Do not lower paper fee/slip for research Σnet
+
+---
+
 ## 2026-10-27 00:20 UTC — family bake-off + BREAKOUT ADX15 refresh (no promote) — cursor-cloud
 
 **Commits:** this branch
