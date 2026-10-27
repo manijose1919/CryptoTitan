@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-27 00:20 UTC — family bake-off + BREAKOUT ADX15 refresh (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** family bake-off script, review, CHANGELOG/README
+**Stats baseline reset:** **no** — research only
+
+**What changed:**
+- Soak: BNB UP ATR%~0.97&lt;1.5; ~41698s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`.
+- Dual-split family bake-off: TREND/MOMENTUM/BREAKOUT/MR all **fail** (`anyDualPass=false`).
+- BREAKOUT under ADX15 still OOS deeply negative (`anyPromote=false`).
+
+**Why:**
+TREND entry softens exhausted and soak remains sterile; re-checked alternate families under current promote bar / ADX15 without cherry-picking.
+
+**What to monitor / watch for:**
+- First in-band UP/STRONG_UP fill under locked quality stack
+- Do not enable BREAKOUT/MR from this refresh
+
+---
+
 ## 2026-10-26 12:15 UTC — scarcity + confirm ablation under ADX15 (no promote) — cursor-cloud
 
 **Commits:** this branch
