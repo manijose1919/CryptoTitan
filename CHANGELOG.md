@@ -51,7 +51,7 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 **Commits:** this branch
 **Files changed:** `v2/pipeline/timeGate.ts`, TimeGate test, research scripts, review, CHANGELOG/README
-**Stats baseline reset:** **yes** — new baseline = restart epoch on `:3137` after deploy (hour-20 unblock)
+**Stats baseline reset:** **yes** — new baseline = `1793148229501` on `:3137` after deploy (hour-20 unblock)
 
 **What changed:**
 - Soak: BNB UP ATR%~0.97&lt;1.5; ~41709s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`.
