@@ -37,7 +37,10 @@ export const TIME_GATE_CONFIG = {
   // locked STRONG_UP+confirm stack — see docs/reviews/2026-10-21-overnight-conf-chase-promote.md.
   // Prior 0–7 block (2026-06-30) was training-era; post-parity scarcity flip + neighborhood
   // showed overnight unblock is required to clear earlier60 n≥10.
-  BLOCKED_HOURS: [13, 20] as readonly number[],
+  // 2026-10-28 promote: drop hour 20 under UP+ADX15+MAX2.8 stack — dual + 120/60 + 150/75
+  // all PASS with higher Σnet than [13,20]; keep hour 13 + Friday.
+  // See docs/reviews/2026-10-28-timegate-hour20-promote.md.
+  BLOCKED_HOURS: [13] as readonly number[],
 
   // Hard-block days (0=Sun, 1=Mon, ..., 5=Fri, 6=Sat)
   // Friday: 40.5% WR, -$938/trade training (worst day)

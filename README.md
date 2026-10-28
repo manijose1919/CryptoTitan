@@ -143,6 +143,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-27 midday:** Fee/slip sensitivity — locked stack dual-PASSes through 60bps RT + 10bps slip; keep paper 52/5 assumptions. See [`docs/reviews/2026-10-27-fee-slip-adx15.md`](docs/reviews/2026-10-27-fee-slip-adx15.md).
 
+**2026-10-28:** **Promoted** TimeGate drop hour 20 — `BLOCKED_HOURS=[13]` (keep Fri); dual + 120/60 + 150/75 PASS, Σnet up vs [13,20]. See [`docs/reviews/2026-10-28-timegate-hour20-promote.md`](docs/reviews/2026-10-28-timegate-hour20-promote.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. UP only with confirm + full quality stack. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

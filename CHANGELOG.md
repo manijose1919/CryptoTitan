@@ -47,6 +47,28 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-28 00:30 UTC — promote TimeGate drop hour 20 — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** `v2/pipeline/timeGate.ts`, TimeGate test, research scripts, review, CHANGELOG/README
+**Stats baseline reset:** **yes** — new baseline = restart epoch on `:3137` after deploy (hour-20 unblock)
+
+**What changed:**
+- Soak: BNB UP ATR%~0.97&lt;1.5; ~41709s suspend recovered; paper; `V2_LIVE_CONFIRMED=no`.
+- TimeGate neighborhood: dropping hour 20 (keep 13 + Fri) dual-PASS Σnet $191 vs paper $160.
+- Stress 90/45→150/75 all PASS; Σnet $397 vs paper $343.
+- **Promoted** `BLOCKED_HOURS` `[13,20]` → `[13]`.
+
+**Why:**
+Under UP+ADX15+MAX2.8 stack, hour 20 was binding negatively; dual + long stress clear with higher Σnet. Overnight 0–7 re-block still n-starves.
+
+**What to monitor / watch for:**
+- Hour-20 UTC entries under locked stack (quality + PnL)
+- Do not re-add overnight 0–7 without dual n≥10
+- Rollback: restore `BLOCKED_HOURS=[13,20]`
+
+---
+
 ## 2026-10-27 12:15 UTC — fee/slip sensitivity on ADX15 stack (informational) — cursor-cloud
 
 **Commits:** this branch

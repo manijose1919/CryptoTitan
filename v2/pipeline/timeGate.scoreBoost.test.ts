@@ -15,10 +15,12 @@ describe('TimeGate scoreBoost vs MIN_CONFIDENCE', () => {
     expect(TIME_GATE_CONFIG.BOOST_AMOUNT).toBe(5);
   });
 
-  it('overnight hours 0–7 are no longer hard-blocked', () => {
+  it('overnight hours 0–7 are no longer hard-blocked; hour 20 unblocked; hour 13 blocked', () => {
     const asian = Date.UTC(2026, 5, 15, 3, 0, 0);
     expect(checkTimeGate(asian).allow).toBe(true);
-    expect(TIME_GATE_CONFIG.BLOCKED_HOURS).toEqual([13, 20]);
+    expect(TIME_GATE_CONFIG.BLOCKED_HOURS).toEqual([13]);
+    expect(checkTimeGate(Date.UTC(2026, 5, 15, 20, 0, 0)).allow).toBe(true);
+    expect(checkTimeGate(Date.UTC(2026, 5, 15, 13, 0, 0)).allow).toBe(false);
   });
 
   it('score 60 passes boosted composite floor and MIN_CONFIDENCE=0.60', () => {
