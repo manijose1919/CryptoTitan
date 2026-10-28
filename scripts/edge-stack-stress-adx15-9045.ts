@@ -90,7 +90,8 @@ async function main(): Promise<void> {
   (V2_CONFIG as { MIN_CONFIDENCE: number }).MIN_CONFIDENCE = 0.6;
   (V2_CONFIG as { MAX_SIGNAL_CLOSE_LOCATION: number }).MAX_SIGNAL_CLOSE_LOCATION = 0.85;
   (V2_CONFIG as { MIN_SIGNAL_VOLUME_RATIO: number }).MIN_SIGNAL_VOLUME_RATIO = 0.2;
-  (TIME_GATE_CONFIG as { BLOCKED_HOURS: readonly number[] }).BLOCKED_HOURS = [13, 20];
+  // 2026-10-28 promote: BLOCKED_HOURS=[13] (hour 20 dropped)
+  (TIME_GATE_CONFIG as { BLOCKED_HOURS: readonly number[] }).BLOCKED_HOURS = [13];
   (STRATEGY_EXIT_CONFIGS.TREND as { timeKillBars: number }).timeKillBars = 4;
   (MOMENTUM_CONFIG as { ENABLED: boolean }).ENABLED = true;
   setSignalWeightMode('static');
@@ -116,13 +117,13 @@ async function main(): Promise<void> {
 
   const out = {
     generatedAt: new Date().toISOString(),
-    purpose: 'Stress regression for current paper stack (UP+ADX15+MAX2.8)',
+    purpose: 'Post hour-20-drop stress regression for current paper stack (UP+ADX15+MAX2.8)',
     stack:
-      'STRONG_UP+UP + confirm + chase0.85 + ATR1.5-2.8 + ADX15 + confirmMomentum + no_overnight + conf0.60 + tk4 + vol0.20',
+      'STRONG_UP+UP + confirm + chase0.85 + ATR1.5-2.8 + ADX15 + confirmMomentum + no_overnight + conf0.60 + tk4 + vol0.20 + TG[13]',
     rows,
     allPass: rows.every((r) => r.pass),
   };
-  const paths = writeResearchArtifact('edge-stack-stress-adx15-9045.json', JSON.stringify(out, null, 2));
+  const paths = writeResearchArtifact('edge-stack-stress-adx15-tg13-9045.json', JSON.stringify(out, null, 2));
   console.log(JSON.stringify({ written: paths, allPass: out.allPass }, null, 2));
   for (const r of rows) {
     console.log(

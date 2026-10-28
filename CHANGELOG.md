@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-28 12:15 UTC — post hour-20 promote stress + trade delta — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** stress script TG[13], hour-20 delta script, review, CHANGELOG/README
+**Stats baseline reset:** **no** — already reset at hour-20 promote
+
+**What changed:**
+- Soak: BNB UP ATR%~0.98&lt;1.5; ~39912s suspend recovered; paper; TG[13] live; baseline `1793148229501`.
+- Stress 90/45→150/75 under TG[13] all **PASS**.
+- Trade delta: new path adds OOS winners entering at 04:00 UTC (confirm after 20:00 signals).
+
+**Why:**
+Reconfirm promote package and explain where hour-20 unblock shows up under confirm-bar timing.
+
+**What to monitor / watch for:**
+- First post-baseline in-band paper fill
+- Hour-20 signal → 04:00 entry path quality in soak
+
+---
+
 ## 2026-10-28 00:30 UTC — promote TimeGate drop hour 20 — cursor-cloud
 
 **Commits:** this branch
