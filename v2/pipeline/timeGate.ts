@@ -55,8 +55,10 @@ export const TIME_GATE_CONFIG = {
   // 21 UTC: 55.2% WR, +$1378/trade training (highest training avg PnL)
   BOOSTED_HOURS: [12, 14, 17, 21] as readonly number[],
   BOOST_AMOUNT: 5, // points to subtract from entry-score threshold (60 -> 55)
-  // 2026-10-21: MIN_CONFIDENCE=0.60 — scoreBoost can matter again for scores 55–59
-  // during boosted hours (was a dead letter at conf 0.65).
+  // 2026-10-29: scoreBoost is a dead letter while confidence = compositeScore/100 and
+  // MIN_CONFIDENCE=0.60 (needs score≥60 anyway). Confirmed identical dual-split fingerprints
+  // for BOOST_AMOUNT 0/5/10 and empty BOOSTED_HOURS — see docs/reviews/2026-10-29-boost-deadletter-atr-nearmiss.md.
+  // Kept as documentation/telemetry of boosted hours; do not rely on it for edge.
 };
 
 export interface TimeGateResult {

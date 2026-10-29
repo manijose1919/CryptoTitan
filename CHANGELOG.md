@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-29 00:20 UTC — scoreBoost dead letter + ATR near-miss — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** boost/ATR research scripts, TimeGate comment, review, CHANGELOG/README
+**Stats baseline reset:** **no** — research / comment only
+
+**What changed:**
+- Soak: XRP+BNB UP but ATR% 1.335 / 1.08 &lt; min 1.5; ~41109s suspend recovered; paper; TG[13].
+- TimeGate `BOOST_AMOUNT` / `BOOSTED_HOURS` ablation: all variants identical dual fingerprints — **dead letter** under conf 0.60 (confidence=score/100).
+- ATR near-miss: recent14 zero in-band; recent30 only 13 band bars + 2 XRP near-misses. Keep minATR 1.5.
+
+**Why:**
+Clarify that scoreBoost cannot admit scores 55–59 while conf gate requires score≥60; quantify how close soak is to first fill.
+
+**What to monitor / watch for:**
+- First UP/SU with ATR% ≥1.5 (XRP closest at ~1.34)
+- Do not lower minATR; do not rely on BOOST_AMOUNT for edge
+
+---
+
 ## 2026-10-28 12:15 UTC — post hour-20 promote stress + trade delta — cursor-cloud
 
 **Commits:** this branch
