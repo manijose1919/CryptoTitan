@@ -149,6 +149,8 @@ Soak (2026-10-04): VM suspend left a pending confirm that armed on a skipped bar
 
 **2026-10-29:** TimeGate scoreBoost confirmed **dead letter** under conf 0.60; ATR near-miss soak (XRP~1.34) — keep minATR 1.5. See [`docs/reviews/2026-10-29-boost-deadletter-atr-nearmiss.md`](docs/reviews/2026-10-29-boost-deadletter-atr-nearmiss.md).
 
+**2026-10-29 midday:** MAX_OPEN 2 micro-only vs paper 3; Friday block still best under TG[13] (**keep 3 + Fri**). See [`docs/reviews/2026-10-29-maxpos-friday-tg13.md`](docs/reviews/2026-10-29-maxpos-friday-tg13.md).
+
 **Decision:** stay paper-only. Do not cherry-pick tickers. UP only with confirm + full quality stack. Stats baseline reset on `:3137` when this package was deployed.
 
 Older CryptoGod figures (mid-cap universes, same-bar fills, enabled MR/sniper) are **not** transferable to this fork.

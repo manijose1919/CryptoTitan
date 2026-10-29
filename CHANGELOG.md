@@ -47,6 +47,26 @@ Bidirectional change log between local Claude (developer machine) and VPS Claude
 
 ---
 
+## 2026-10-29 12:15 UTC — maxOpen + Friday under TG[13] (no promote) — cursor-cloud
+
+**Commits:** this branch
+**Files changed:** maxpos/Friday research scripts, review, CHANGELOG/README
+**Stats baseline reset:** **no** — research only
+
+**What changed:**
+- Soak: risk-off (no UP); ~41105s suspend recovered; paper; TG[13]; cohort 0.
+- MAX_OPEN 2 dual-PASS +$5.5 vs paper 3; 4/5 identical to 3 — **keep 3**.
+- Friday keep: no-Fri hurts Σnet; Fri+Mon fails OOS PF.
+
+**Why:**
+Post hour-20 / boost-deadletter cycle; probe remaining capacity/day gates without loosening ATR/confirm.
+
+**What to monitor / watch for:**
+- First post-baseline in-band UP/STRONG_UP fill
+- Do not drop Friday; do not raise maxOpen for this sample
+
+---
+
 ## 2026-10-29 00:20 UTC — scoreBoost dead letter + ATR near-miss — cursor-cloud
 
 **Commits:** this branch
